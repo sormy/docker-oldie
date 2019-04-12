@@ -1,0 +1,3 @@
+build/**
+files/**
+!build/system.qcow2

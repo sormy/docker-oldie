@@ -1,0 +1,8 @@
+[SourceDisksFiles]
+viostor.sys = 100,,,,,,3_,4,0,0,,1,4
+
+[SCSI.Load]
+viostor = viostor.sys,4
+
+[SCSI]
+viostor = "Red Hat VirtIO BLOCK Disk Device WinXP/32-bit"

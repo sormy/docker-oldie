@@ -1,0 +1,185 @@
+#!/bin/bash
+
+# Stop immediately on any error.
+set -e
+
+die() {
+  echo "$@"
+  exit 2
+}
+
+if [ "$#" -lt 1 ]; then
+  echo "Usage: $(basename $0) <PRODUCT_KEY> [IE_VERSION=6] [VNC_PORT=5900]"
+  exit 1
+fi
+
+if [ $(uname) = "Darwin" ]; then
+  shopt -s expand_aliases
+  alias sed=gsed
+  alias realpath=grealpath
+  alias sha256sum=gsha256sum
+fi
+
+PRODUCT_KEY=$1
+IE_VERSION=${2-6}
+VNC_PORT=${3-5900}
+
+# Display all executed commands from now.
+set -x
+
+# Installation resources that are not publicly available.
+WIN_ISO="$(realpath files/en_windows_xp_professional_with_service_pack_3_x86_cd_vl_x14-73974.iso)"
+JRE_EXE="$(realpath files/jre-7u80-windows-i586.exe)"
+
+# Support files.
+WINNT_SIF="$(realpath support/winnt.sif)"
+TXTSETUP_SIF="$(realpath support/txtsetup.sif)"
+ONCE_BAT="$(realpath support/once.bat)"
+START_BAT="$(realpath support/start.bat)"
+
+# Use this directory for build artifacts.
+BUILD_DIR=build
+
+# Create build directory.
+mkdir -p "$BUILD_DIR" && cd "$BUILD_DIR"
+
+# Verify Windows ISO.
+sha256sum "$WIN_ISO" \
+  | grep -q fd8c8d42c1581e8767217fe800bfc0d5649c0ad20d754c927d6c763e446d1927 || die "Invalid hash"
+
+# Verify JavaRE EXE.
+sha256sum "$JRE_EXE" \
+  | grep -q a87adf22064e2f7fa6ef64b2513533bf02aa0bf5265670e95b301a79d7ca89d9 || die "Invalid hash"
+
+# Download Selenium IE Driver.
+if [ ! -f IEDriverServer_Win32_2.46.0.zip ]; then
+  wget https://selenium-release.storage.googleapis.com/2.46/IEDriverServer_Win32_2.46.0.zip
+fi
+
+# Verify Selenium IE Driver.
+sha256sum IEDriverServer_Win32_2.46.0.zip \
+  | grep -q 70d4e5887e527352aa40bf682338bccf005c1b972c58f3e2a605eea1a2bb986f || die "Invalid hash"
+
+# Download Selenium Server.
+if [ ! -f selenium-server-standalone-2.46.0.jar ]; then
+  wget https://selenium-release.storage.googleapis.com/2.46/selenium-server-standalone-2.46.0.jar
+fi
+
+# Verify Selenium Server.
+sha256sum selenium-server-standalone-2.46.0.jar \
+  | grep -q deb997cfbbc29680b20e7af6960b5c49ecd5aa3e17fba0d3288cfb9c62a9b9e6 || die "Invalid hash"
+
+if [ $IE_VERSION = 7 ]; then
+  # Download IE7.
+  if [ ! -f IE7-WindowsXP-x86-enu.exe ]; then
+    wget https://download.microsoft.com/download/3/8/8/38889DC1-848C-4BF2-8335-86C573AD86D9/IE7-WindowsXP-x86-enu.exe
+  fi
+
+  # Verify IE7.
+  sha256sum IE7-WindowsXP-x86-enu.exe \
+    | grep -q bf5c325bbe3f4174869b2a8ff75f92833e7f7debe64777ed0faf293c7725cbef || die "Invalid hash"
+fi
+
+# Download IE8.
+if [ $IE_VERSION = 7 ]; then
+  if [ ! -f IE8-WindowsXP-KB2936068-x86-ENU.exe ]; then
+    wget https://download.microsoft.com/download/3/8/C/38CE0ABB-01FD-4C0A-A569-BC5E82C34A17/IE8-WindowsXP-KB2936068-x86-ENU.exe
+  fi
+
+  # Verify IE8.
+  sha256sum IE8-WindowsXP-KB2936068-x86-ENU.exe \
+    | grep -q 8bda23c78cdcd9d01c364a01c6d639dfb2d11550a5521b8a81c808c1a2b1824e || die "Invalid hash"
+fi
+
+# Download VirtIO Drivers.
+if [ ! -f virtio-win-0.1.164.iso ]; then
+  wget https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/archive-virtio/virtio-win-0.1.164-2/virtio-win-0.1.164.iso
+fi
+
+# Verify VirtIO Drivers.
+sha256sum virtio-win-0.1.164.iso \
+  | grep -q 594678f509ba6827c7b75d076ecfb64d45c6ad95e9fccba7258e6eee9a6a3560 || die "Invalid hash"
+
+# Extract ISO contents.
+if [ ! -d install ]; then
+  7z x -oinstall "$WIN_ISO"
+fi
+
+# Install winnt.sif into ISO and inject product key in it.
+if [ ! -f install/I386/WINNT.SIF ]; then
+  cp -v "$WINNT_SIF" install/I386/WINNT.SIF
+  sed -i "s/{productKey}/$PRODUCT_KEY/g" install/I386/WINNT.SIF
+fi
+
+# Unpack VirtIO ISO.
+if [ ! -d virtio-win ]; then
+  7z x -ovirtio-win virtio-win-0.1.164.iso
+fi
+
+# Install virtio drivers for PnP installation.
+if [ ! -d 'install/$oem$/$1/drivers' ]; then
+  mkdir -p 'install/$oem$/$1/drivers'
+  cp -v virtio-win/{viostor,qxl,NetKVM}/xp/x86/* 'install/$oem$/$1/drivers'
+fi
+
+# Install viostor for text mode installation.
+if [ ! -f 'install/I386/viostor.sys' ]; then
+  cp -v 'install/$oem$/$1/drivers/viostor.sys' 'install/I386'
+fi
+
+# Configure viostor for text mode installation.
+if ! cat install/I386/TXTSETUP.SIF | grep -q viostor; then
+  sed -i '$ d' install/I386/TXTSETUP.SIF
+  cat "$TXTSETUP_SIF" >> install/I386/TXTSETUP.SIF
+fi
+
+# Install selenium stuff.
+if [ ! -d 'install/$oem$/$1/selenium' ]; then
+  mkdir -p 'install/$oem$/$1/selenium'
+
+  cp -v "$JRE_EXE" "$START_BAT" selenium-server-standalone-2.46.0.jar 'install/$oem$/$1/selenium'
+
+  unzip IEDriverServer_Win32_2.46.0.zip -d 'install/$oem$/$1/selenium'
+
+  cat "$ONCE_BAT" | sed "s/{ieVersion}/$IE_VERSION/g" > 'install/$oem$/$1/selenium/once.bat'
+
+  if [ $IE_VERSION = 7 ]; then
+    cp -v IE7-WindowsXP-x86-enu.exe 'install/$oem$/$1/selenium'
+  fi
+
+  if [ $IE_VERSION = 8 ]; then
+    cp -v IE8-WindowsXP-KB2936068-x86-ENU.exe 'install/$oem$/$1/selenium'
+  fi
+fi
+
+# Build installation ISO.
+if [ ! -f install.iso ]; then
+  mkisofs \
+    -no-emul-boot -boot-load-seg 1984 -boot-load-size 4 \
+    -iso-level 2 -J -l -D -N -joliet-long -relaxed-filenames \
+    -b '[BOOT]/Boot-NoEmul.img' -V 'GRTMPVOL_EN' -o install.iso install
+fi
+
+# Create QEMU system disk.
+if [ ! -f system.qcow2 ]; then
+  qemu-img create -f qcow2 system.qcow2 5G
+fi
+
+# Run VNC viewer (if installed).
+if which vncviewer > /dev/null; then
+  (sleep 5; vncviewer localhost:5900) &
+fi
+
+# Install windows in unattended mode.
+qemu-system-x86_64 \
+  -m 512 \
+  -drive media=disk,file=system.qcow2,format=qcow2,if=virtio \
+  -drive media=cdrom,file=install.iso \
+  -boot once=d \
+  -vnc :$(echo $VNC_PORT - 5900 | bc) \
+  -rtc base=utc \
+  -usb \
+  -device usb-tablet \
+  -vga std \
+  -device virtio-net,netdev=vmnic \
+  -netdev user,id=vmnic
