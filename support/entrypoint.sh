@@ -1,9 +1,5 @@
 #!/bin/bash
 
-# try to initialize kvm for qemu hardware acceleration (if available)
-# from https://github.com/kevinwallace/qemu-docker/blob/master/kvm-mknod.sh
-/opt/qemu/kvm-mknod.sh
-
 # detect vnc screen number
 VNC_SCREEN=$(echo ${VNC_PORT} - 5900 | bc)
 
@@ -11,7 +7,7 @@ VNC_SCREEN=$(echo ${VNC_PORT} - 5900 | bc)
 if [ -n "$SELENIUM_HUB" ]; then
   SELENIUM_EXTRA_ARGS="-role node -hub $SELENIUM_HUB"
 else
-  SELENIUM_EXTRA_ARGS=""
+  SELENIUM_EXTRA_ARGS="-role hub"
 fi
 
 # create directory that will be shared with guest
@@ -26,12 +22,12 @@ sed -i "s/{seleniumExtraArgs}/$SELENIUM_EXTRA_ARGS/g" /opt/qemu/shared/start-nod
 
 # run actual qemu
 qemu-system-x86_64 \
-  -m ${QEMU_RAM} \
+  -m $QEMU_RAM \
   -drive media=disk,file=/opt/qemu/system.qcow2,format=qcow2,if=virtio \
-  -vnc :${VNC_SCREEN} \
+  -vnc :$VNC_SCREEN \
   -rtc base=utc \
   -usb \
   -device usb-tablet \
-  -vga std \
+  -vga $QEMU_VGA \
   -device virtio-net,netdev=vmnic \
   -netdev user,id=vmnic,smb=/opt/qemu/shared,hostfwd=tcp::${SELENIUM_PORT}-:${SELENIUM_PORT}

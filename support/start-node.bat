@@ -10,7 +10,9 @@ set SELENIUM_EXTRA_ARGS={seleniumExtraArgs}
 for /f "skip=4 tokens=3" %%a in ('reg query "HKEY_LOCAL_MACHINE\Software\Microsoft\Internet Explorer" /v Version') do set IE_VERSION=%%a
 for /f "tokens=1 delims=." %%a in ("%IE_VERSION%") do set IE_MAJOR_VERSION=%%a
 
-: run selenium server
+echo Internet Explorer version: %IE_MAJOR_VERSION% (%IE_VERSION%)
+
+echo Starting Selenium Server...
 java -Dselenium.LOGGER.level=WARNING ^
   -Dwebdriver.ie.driver=./IEDriverServer.exe ^
   -jar selenium-server-standalone-2.46.0.jar ^

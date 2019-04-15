@@ -48,3 +48,15 @@ JoinWorkgroup="WORKGROUP"
 
 [GuiRunOnce]
 "%SystemDrive%\selenium\once.bat"
+
+[Branding]
+BrandIEUsingUnattended=Yes
+
+[URL]
+Home_Page=about:blank
+
+[Display]
+XResolution={screenWidth}
+YResolution={screenHeight}
+BitsPerPel={colorDepth}
+VRefresh={refreshRate}

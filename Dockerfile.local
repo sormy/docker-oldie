@@ -1,0 +1,28 @@
+FROM debian:buster
+
+LABEL maintainer="art.sormy@gmail.com"
+
+# Runtime parameters.
+ENV SELENIUM_PORT=5555
+ENV SELENIUM_HUB=
+ENV VNC_PORT=5900
+ENV QEMU_RAM=512
+ENV QEMU_VGA=cirrus
+
+WORKDIR /opt/qemu
+
+ADD system.qcow2 /opt/qemu/
+ADD entrypoint.sh /opt/qemu/
+ADD start-node.bat /opt/qemu/
+
+RUN chmod +x /opt/qemu/*.sh
+
+RUN apt-get update \
+    && apt-get install -y qemu-kvm samba bc kmod \
+    && rm -rf /var/lib/apt/lists/*
+
+# QEMU 2.8 is consistently crashing inside Docker container.
+RUN [ "$(qemu-system-x86_64 -version | head -n 1 \
+        | sed 's/^.*version \([0-9]\{1,\}\.[0-9]\{1,\}\)\..*$/\1/')" != "2.8" ]
+
+ENTRYPOINT ["/opt/qemu/entrypoint.sh"]
