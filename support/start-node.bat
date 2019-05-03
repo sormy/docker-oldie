@@ -7,7 +7,9 @@ set SELENIUM_EXTRA_ARGS={seleniumExtraArgs}
 : read internet explorer version directly from registry
 : IE_VERSION will have full version like A.B.C.D
 : IE_MAJOR_VERSION will have only major version like A
-for /f "skip=4 tokens=3" %%a in ('reg query "HKEY_LOCAL_MACHINE\Software\Microsoft\Internet Explorer" /v Version') do set IE_VERSION=%%a
+reg query "HKLM\Software\Microsoft\Internet Explorer" /v Version | findstr /rc:REG_SZ > ie-version-reg.txt
+for /f "tokens=3" %%a in (ie-version-reg.txt) do set IE_VERSION=%%a
+del /f /q ie-version-reg.txt
 for /f "tokens=1 delims=." %%a in ("%IE_VERSION%") do set IE_MAJOR_VERSION=%%a
 
 echo Internet Explorer version: %IE_MAJOR_VERSION% (%IE_VERSION%)
