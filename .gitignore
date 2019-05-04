@@ -2,3 +2,4 @@ files/*
 build/*
 !files/.keep
 local-build
+NOTES.local.md

@@ -2,12 +2,23 @@ FROM debian:buster
 
 LABEL maintainer="art.sormy@gmail.com"
 
+# Build arguments (should be the same as used for local build).
+ARG QEMU_VGA
+ARG QEMU_NET=virtio
+ARG QEMU_DISK=virtio
+
 # Runtime parameters.
 ENV SELENIUM_PORT=5555
 ENV SELENIUM_HUB=
+ENV SELENIUM_INSTANCES=1
 ENV VNC_PORT=5900
 ENV QEMU_RAM=512
-ENV QEMU_VGA=cirrus
+ENV QEMU_VGA=${QEMU_VGA}
+ENV QEMU_NET=${QEMU_NET}
+ENV QEMU_DISK=${QEMU_DISK}
+
+# Verify build arguments.
+RUN [ -n "$QEMU_VGA" ]
 
 WORKDIR /opt/qemu
 

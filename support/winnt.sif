@@ -33,7 +33,7 @@ OemSkipWelcome=1
 [UserData]
 ProductKey={productKey}
 FullName="oldie"
-OrgName="oldie"
+OrgName="{orgName}"
 ComputerName="oldie-pc"
 
 [RegionalSettings]
@@ -47,7 +47,7 @@ InstallDefaultComponents="Yes"
 JoinWorkgroup="WORKGROUP"
 
 [GuiRunOnce]
-"%SystemDrive%\selenium\once.bat"
+Command0="%SystemDrive%\provision\once.bat"
 
 [Branding]
 BrandIEUsingUnattended=Yes

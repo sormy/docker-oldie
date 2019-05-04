@@ -4,7 +4,7 @@ Docker image with QEMU, VNC access, Windows XP, IE 6/7/8 and Selenium Server.
 
 Ideal to run integration tests on ancient IE 6/7/8 in cloud or locally.
 
-The build script is designed to use official windows xp msdn iso image. It will
+The build script is designed to use official windows xp msdn iso images. It will
 unpack image, inject drivers and configuration and will install it as qemu guest.
 
 The build script will also install Java, Selenium Server, Internet Explorer 7/8
@@ -14,26 +14,41 @@ The build script will also install Java, Selenium Server, Internet Explorer 7/8
 
 ### Windows XP ISO
 
-Recommended Windows XP ISO image:
+Tested and supported Windows XP ISO images:
 
-* Name: Windows XP Pro SP3 x86 English Corporate
-* File: en_windows_xp_professional_with_service_pack_3_x86_cd_vl_x14-73974.iso
-* SHA256: fd8c8d42c1581e8767217fe800bfc0d5649c0ad20d754c927d6c763e446d1927
-* Put into `files` directory
+* Windows XP Pro SP3 **32bit** English Corporate
+  * File: en_windows_xp_professional_with_service_pack_3_x86_cd_vl_x14-73974.iso
+  * SHA1: 66ac289ae27724c5ae17139227cbe78c01eefe40
+  * SHA256: fd8c8d42c1581e8767217fe800bfc0d5649c0ad20d754c927d6c763e446d1927
+* Windows XP Pro SP2 **64bit** English Corporate
+  * File: en_win_xp_pro_x64_with_sp2_vl_X13-41611.iso
+  * SHA1: cd9479e1dbad7f26b8bdcf97e4aa71cbb8de932b
+  * SHA256: ace108a116ed33ddbfd6b7e2c5f21bcef9b3ba777ca9a8052730138341a3d67d
+
+After downloading put image file into `files` directory.
+
+Use `WIN_ARCH` build argument to choose what image to use.
+
+You could always confirm hashes for official MSDN distributions here:
+
+* https://msdn.lol-inter.net/
+* http://www.heidoc.net/php/myvsdump.php
 
 ### Java RE
+
+Java RE 7.x is needed to run Selenium Server.
 
 Java RE 7.x that is compatible with Windows XP is not available for downloading
 without registering Oracle account these days. You could download file manualy.
 
-* Name: Oracle Java RE 7
 * File: jre-7u80-windows-i586.exe
 * SHA256: a87adf22064e2f7fa6ef64b2513533bf02aa0bf5265670e95b301a79d7ca89d9
-* Put into `files` directory
+
+After downloading put the file into `files` directory.
 
 ## Legal Rights
 
-Internet Explorer 6/7/8 were released for Windows XP and not available for
+Internet Explorer 6/7/8 were released for Windows XP and are not available for
 Windows Vista/7/8/8.1/10.
 
 The only legal way to run Windows XP these days is to use right to downgrade:
@@ -42,8 +57,20 @@ https://download.microsoft.com/download/6/8/9/68964284-864d-4a6d-aed9-f2c1f8f23e
 > For Windows 10 licenses acquired though Commercial Licensing, you may downgrade
 > to any prior version of the licensed Windows edition.
 
-Windows XP activation services are down these days and the only way to get it
+> If you have legally obtained physical media (CD/DVD) of earlier Microsoft products
+> that your organization is currently licensed to use through downgrade rights,
+> you may use these prior software versions at your discretion.
+
+Windows XP activation services could be down these days and the only way to get it
 working is to use Windows XP Corporate Edition that doesn't require activation.
+
+You will need to use previosly legally obtained media and install with previosly
+legally obtained product key.
+
+Only Windows 10 retail version is eligible for right to downgrade (OEM is not).
+
+You could confirm if Windows 10 Product Key is Retail or not using `ShowKeyPlus`
+utility: https://github.com/Superfly-Inc/ShowKeyPlus/releases
 
 ## Building inside container
 
@@ -51,10 +78,10 @@ Docker doesn't have an option to build image with privileged access so
 port forwarding and hardware acceleration for emulation won't be available
 during the build.
 
-That mean that image build won't be fast and there will be no way to see
+That mean that image build won't as fast as kvm and there will be no way to see
 installation progress using VNC viewer.
 
-The process is running around 60 mins on Macbook Pro 2017 Core i7.
+The process is running around 45-60 mins on Macbook Pro 2017 Core i7 (no kvm).
 
 Usage:
 
@@ -62,40 +89,42 @@ Usage:
 docker build \
   --build-arg PRODUCT_KEY={PRODUCT_KEY} \
   --build-arg IE_VERSION={IE_VERSION} \
-  -t sormy/oldie:{IE_VERSION} .
+  --build-arg WIN_ARCH={WIN_ARCH} \
+  --build-arg QEMU_VGA={QEMU_VGA} \
+  -t {IMAGE_NAME} .
 ```
 
 Build Arguments:
 
-- `PRODUCT_KEY` - Windows XP SP3 Corporate Product Key (required)
+- `PRODUCT_KEY` - Windows XP Pro Corporate Product Key (**required**)
+- `WIN_ARCH` - Windows XP Architecture (**required**): `32` bit or `64` bit
 - `IE_VERSION` - Internet Explorer version: `6` (default), `7` or `8`
-- `QEMU_VGA` - `std`, `cirrus` (default), `wmware`, `qxl`
-  - `std` - no driver for window xp or I did not find it
-  - `cirrus` - Cirrus Logic 5446, windows xp has driver for it
-  - `vmware` - there is a driver from VMWare guest ISO but vmware support sometimes
-    is not enabled in qemu buld (like on debian:buster, for example)
-  - `qxl` - there is a driver but qxl support sometimes is not enable in qemu build
-    (like on homebrew macOS, for example), and it also doesn't work well with VNC
-    connected to the screen (vnc viewer consistently loosing the connection)
-- `SCREEN_WIDTH` - screen width (1024 by default)
-- `SCREEN_HEIGHT` - screen height (768 by default)
-- `COLOR_DEPTH` - color depth (24 bits by default)
-- `REFRESH_RATE` - refresh rate (60 Hz by default)
+- `ORG_NAME` - Organization name (`oldie` by default)
+- `QEMU_RAM` - amount of RAM in MB shared with QEMU instance (`512` by default)
+- `QEMU_VGA` - QEMU video device model (**required**)
+  - See more information in QEMU documentation for `-vga` parameter
+  - Available values: `cirrus`, `std`, `wmware`, `qxl`
+  - Windows XP 32bit recommendation: `qxl`
+  - Windows XP 64bit recommendation: `std`
+- `QEMU_NET` - QEMU network device model (`virtio` by default)
+- `QEMU_DISK` - QEMU disk device model (`virtio` by default)
+- `SCREEN_WIDTH` - screen width (`1024` by default)
+- `SCREEN_HEIGHT` - screen height (`768` by default)
+- `COLOR_DEPTH` - color depth (`32` bits by default)
+- `REFRESH_RATE` - refresh rate (`60` Hz by default)
 
-## Building on host (local)
+## Building locally on the host
 
 The building process is much faster and easier to debug if system image build
 is performed on host and then system image is copied into container.
 
-The process is running around 45 mins on Macbook Pro 2017 Core i7.
+Local building script is not cleaning up after for debugging purposes.
+
+The process is running around 45-60 mins on Macbook Pro 2017 Core i7 (no kvm).
 
 These dependencies need to be installed to build on macOS host:
 
 ```
-# install intel hardware acceleration kernel module
-brew cask install intel-haxm
-# load haxm kernel module
-sudo kextload /Library/Extensions/intelhaxm.kext
 # run the build script
 brew install qemu coreutils gnu-sed wget cdrtools p7zip
 # see the installation progress using vnc viewer (will be automatically launched)
@@ -120,26 +149,34 @@ Usage:
 # create build and docker scripts
 ./local-configure
 # build system image, pass build arguments using shell environment varibles
-PRODUCT_KEY={PRODUCT_KEY} IE_VERSION={IE_VERSION} ./local-build
+PRODUCT_KEY={PRODUCT_KEY} IE_VERSION={IE_VERSION} WIN_ARCH={WIN_ARCH} QEMU_VGA={QEMU_VGA} ./local-build
 # build docker image
 cp -v Dockerfile.local build/Dockerfile
-cd build && docker build -t sormy/oldie:{IE_VERSION} . && cd -
+cd build \
+  && docker build --build-arg QEMU_VGA={QEMU_VGA} -t {IMAGE_NAME} . \
+  && cd -
 ```
 
 Script `local-configure` will parse `Dockerfile` and convert to shell script on
 the fly that will be executed locally to build system image.
 
-QEMU screen will be available on VNC 5900 port by default during the build.
+All docker build arguments could be passed as shell environment variables to
+`local-build`.
 
-You could pass additional build arguments (see previous section) using shell
-environment variables, the same as `PRODUCT_KEY` and `IE_VERSION`.
+QEMU screen will be available on VNC 5900 port by default during local build.
+
+These build arguments must be also passed to `docker build` command:
+
+* `QEMU_VGA` - **required**
+* `QEMU_NET` - if modified from default value
+* `QEMU_DISK` - if modified from default value
 
 ## Running
 
 Run container:
 
 ```
-docker run -d -p 5900:5900 -p 5555:5555 --privileged sormy/oldie:7
+docker run -d -p 5900:5900 -p 5555:5555 --privileged {IMAGE_NAME}
 ```
 
 Options:
@@ -150,26 +187,27 @@ Options:
   - `5900` is used for VNC by default
   - `5555` is used by Selenium node by default
 - `-e {varName}={varValue}` - pass environment variable to container
-  - `SELENIUM_PORT` - run selenium node on this port (default to `5555`)
+  - `SELENIUM_PORT` - run selenium node on this port (`5555` by default)
   - `SELENIUM_HUB` - http://selenium-hub.domain.com:4444/grid/register
-  - `VNC_PORT` - run VNC screen on this port (default to `5900`, must be not lower than `5900`)
-  - `QEMU_RAM` - amount of RAM in MB shared with QEMU instance (default to `512`)
-  - `QEMU_VGA` - the vga could be changed after image creation, however, it will require
-    manual action to invoke driver installation in guest os.
+  - `SELENIUM_INSTANCES` - number of allowed browser instances (`1` by default)
+  - `VNC_PORT` - run VNC screen on this port (`5900` by default, must be not lower than `5900`)
+  - `QEMU_RAM` - amount of RAM in MB shared with QEMU instance (`512` by default)
 
-You could run multiple containers, just run them on different ports.
+You could run multiple containers using different VNC and Selenium ports.
 
-If you don't need to see what is happening on instance using vnc viewer then
+If you don't need to see what is happening on instance using VNC viewer then
 just don't forward VNC port.
 
 ## FAQ
 
 * Q: Why does this script check SHA256 for all files?
-* A: For security purposes the script doesn't trust files downloaded from internet.
+* A: For security purposes script doesn't trust files downloaded from internet.
 
-* Q: Why each container can run only single instance of Internet Explorer.
-* A: Internet Explorer doesn't have an option to isolate sessions so for stability
-  it is better to use one container for just one test.
+* Q: Why VGA driver is different for Windows XP 32 bit and 64 bit windows?
+* A: Windows XP 64 bit has different set of integrated drivers and some virtio
+  drivers are just not available for Windows XP 64 bit. `qxl` is available only
+  on 32 bit. `cirrus` is slow but is available on both. `std` is available only
+  on 64 bit. `wmware` is buggy based on publicly available information.
 
 ## Contribution
 
@@ -177,23 +215,24 @@ Feel free to submit a PR for new features or/and bug fixes (if any).
 
 These are features I think could be valuable for this project:
 
-- Share clipboard over VNC, should be fixable with spice guest tools being installed
-- Set screen resolution and etc in runtime? <http://tools.taubenkorb.at/change-screen-resolution/>
+- Disable PXE boot delay
+- Mark ethernet and storage devices as not external
+- Disable screensaver
+- Remove desktop walpaper
+- Share clipboard over VNC (qemu spice only?)
+- Set screen resolution and etc in runtime?
 - Automatically install drivers for video adapater if QEMU_VGA has changed.
 - Do one login after setup to make next login much faster
 - Web-based viewer (noVNC, for example)
-- Add vnc authentication (password, for example)
-- Show network icon?
+- Add VNC authentication (password, for example)
+- Show network icon for network adapter?
 - Option to install custom trusted SSL certificates in runtime
-- Allow to use other windows xp images?
+- Allow to use other windows xp images (need to test)?
 - Speedup windows xp (disable unneeded features and services)
-- Docker can't forward ports during build but we still could take screenshots
-  during then build. Will need to provide instructions how to debug issues during
-  container build.
+- Dubug installation process in docker (record VNC video to file?)
 - IE 5.5 (using Windows 2000 Pro)
 - Add Docker HEALTHCHECK
-- Add -accel to qemu on different stages (container build, local build, runtime)
-  and test how does it work with kvm, xen, hax
+- Test different accel value: kvm, xen, hax
 
 ## License
 

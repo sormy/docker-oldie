@@ -19,15 +19,19 @@ cp /opt/qemu/start-node.bat /opt/qemu/shared/start-node.bat
 # inject selenium properties into start-node
 sed -i "s/{seleniumPort}/$SELENIUM_PORT/g" /opt/qemu/shared/start-node.bat
 sed -i "s/{seleniumExtraArgs}/$SELENIUM_EXTRA_ARGS/g" /opt/qemu/shared/start-node.bat
+sed -i "s/{seleniumInstances}/$SELENIUM_INSTANCES/g" /opt/qemu/shared/start-node.bat
 
 # run actual qemu
+# NOTE: thread=single makes wxp64 stable otherwise BSOD STOP 0x000000D1 or 0x0000001E
 qemu-system-x86_64 \
+  -accel kvm \
+  -accel tcg,thread=single \
+  -machine pc \
   -m $QEMU_RAM \
-  -drive media=disk,file=/opt/qemu/system.qcow2,format=qcow2,if=virtio \
   -vnc :$VNC_SCREEN \
+  -drive media=disk,file=/opt/qemu/system.qcow2,format=qcow2,if=$QEMU_DISK,cache=none,aio=native \
   -rtc base=utc \
   -usb \
   -device usb-tablet \
   -vga $QEMU_VGA \
-  -device virtio-net,netdev=vmnic \
-  -netdev user,id=vmnic,smb=/opt/qemu/shared,hostfwd=tcp::${SELENIUM_PORT}-:${SELENIUM_PORT}
+  -nic user,model=$QEMU_NET,smb=/opt/qemu/shared,hostfwd=tcp::${SELENIUM_PORT}-:${SELENIUM_PORT}
