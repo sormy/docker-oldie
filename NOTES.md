@@ -59,3 +59,38 @@ reg add "HKCU\Control Panel\Desktop" /v ScreenSaveActive /t REG_DWORD /d 0 /f > 
 ## Disable PXE boot delay
 
 Passing `romfile=` to `-nic` should fix the issue.
+
+## noVNC
+
+```sh
+apt-get install git
+
+curl -sL https://deb.nodesource.com/setup_11.x | bash -
+apt-get install -y nodejs
+
+mkdir -p /opt && cd /opt
+git clone https://github.com/novnc/noVNC.git
+cd /opt/noVNC
+git checkout v1.1.0
+npm install
+./utils/use_require.js --with-app --as commonjs
+npm install http-server -g
+```
+
+## Links
+
+* https://github.com/kevinwallace/qemu-docker
+* http://showcase.netins.net/web/giftitems/BEGINNERS/10_%20WINNT_SIF%20Reference_19.htm
+* http://unattended.sourceforge.net/timezones.php
+* https://www.svrops.com/svrops/documents/xpunattend.htm
+* https://support.microsoft.com/en-ca/help/155197/howto-unattended-setup-parameters-for-unattend-txt-file
+* https://qemu.weilnetz.de/doc/qemu-doc.html#SVGA-graphic-modes-support
+* https://en.wikibooks.org/wiki/QEMU/Networking#Redirecting_ports
+* https://batchloaf.wordpress.com/2013/02/12/simple-trick-for-sending-characters-to-a-serial-port-in-windows/
+* https://help.ubuntu.com/community/WindowsXPUnderQemuHowTo
+* https://wiki.archlinux.org/index.php/QEMU#Change_Existing_Windows_VM_to_use_virtio
+* https://wiki.gentoo.org/wiki/QEMU/Options
+* https://www.suse.com/documentation/sles11/book_kvm/data/cha_qemu_running_devices.html
+* https://jurik-phys.net/files/kvm/
+* https://www.linux-kvm.org/page/WindowsGuestDrivers/viostor/installation
+* https://b3n7s.github.io/update/2016/06/08/windows-xp-on-qemu.html

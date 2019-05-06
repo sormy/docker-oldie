@@ -21,6 +21,13 @@ sed -i "s/{seleniumPort}/$SELENIUM_PORT/g" /opt/qemu/shared/start-node.bat
 sed -i "s/{seleniumExtraArgs}/$SELENIUM_EXTRA_ARGS/g" /opt/qemu/shared/start-node.bat
 sed -i "s/{seleniumInstances}/$SELENIUM_INSTANCES/g" /opt/qemu/shared/start-node.bat
 
+# generate mac address if not already available or read previously generated
+# 52:54:00 is well-known vendor prefix for QEMU virtual adapters
+if [ ! -f macaddr.txt ]; then
+  printf '52:54:00:%02X:%02X:%02X\n' $((RANDOM%256)) $((RANDOM%256)) $((RANDOM%256)) > macaddr.conf
+fi
+MAC_ADDR=$(cat macaddr.conf)
+
 # run actual qemu
 # NOTE: thread=single makes wxp64 stable otherwise BSOD STOP 0x000000D1 or 0x0000001E
 qemu-system-x86_64 \
@@ -34,4 +41,4 @@ qemu-system-x86_64 \
   -usb \
   -device usb-tablet \
   -vga $QEMU_VGA \
-  -nic user,model=$QEMU_NET,smb=/opt/qemu/shared,hostfwd=tcp::${SELENIUM_PORT}-:${SELENIUM_PORT}
+  -nic user,model=$QEMU_NET,smb=/opt/qemu/shared,mac=${MAC_ADDR},hostfwd=tcp::${SELENIUM_PORT}-:${SELENIUM_PORT}

@@ -225,7 +225,7 @@ RUN qemu-system-x86_64 \
       -usb \
       -device usb-tablet \
       -vga $QEMU_VGA \
-      -nic user,model=$QEMU_NET
+      -nic user,model=$QEMU_NET,restrict=on
 
 # Remove not needed anymore installation media.
 RUN rm -rf install *.iso
