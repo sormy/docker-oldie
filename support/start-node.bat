@@ -1,5 +1,10 @@
 @echo off
 
+: windows xp 64bit requires phishing filter to be configured after initial provision
+echo Disabling IE phishing filter...
+reg add "HKCU\Software\Microsoft\Internet Explorer\PhishingFilter" /v ShownVerifyBalloon /t REG_DWORD /d 3 /f > nul
+reg add "HKCU\Software\Microsoft\Internet Explorer\PhishingFilter" /v Enabled /t REG_DWORD /d 0 /f > nul
+
 : these variables should be set by main script
 set SELENIUM_PORT={seleniumPort}
 set SELENIUM_EXTRA_ARGS={seleniumExtraArgs}
