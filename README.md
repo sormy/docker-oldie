@@ -94,6 +94,18 @@ docker build \
   -t {IMAGE_NAME} .
 ```
 
+Example (IE7 running on Windows XP 64bit):
+
+```bash
+docker build \
+  --build-arg PRODUCT_KEY=AAAAA-BBBBB-CCCCC-DDDDD-EEEEE \
+  --build-arg IE_VERSION=7 \
+  --build-arg WIN_ARCH=64 \
+  --build-arg QEMU_VGA=std \
+  --build-arg ORG_NAME=MyOrg \
+  -t wxp64-ie7 .
+```
+
 Build Arguments:
 
 - `PRODUCT_KEY` - Windows XP Pro Corporate Product Key (**required**)
@@ -175,8 +187,32 @@ These build arguments must be also passed to `docker build` command:
 
 Run container:
 
-```
+```bash
 docker run -d -p 5900:5900 -p 5555:5555 --privileged {IMAGE_NAME}
+```
+
+Example (running node that joins the hub):
+
+```bash
+# run one selenium node reachable by http://selenium-node-1.domain.com:5555
+docker run \
+  -d \
+  -p 5900:5900 \
+  -p 5555:5555 \
+  -e SELENIUM_HUB=http://selenium-hub.domain.com:4444 \
+  -e REMOTE_HOST=http://$(hostname):5555 \
+  --privileged \
+  wxp64-ie7
+
+# run second selenium node reachable by http://selenium-node-2.domain.com:5556
+docker run \
+  -d \
+  -p 5901:5900 \
+  -p 5556:5555 \
+  -e SELENIUM_HUB=http://selenium-hub.domain.com:4444 \
+  -e REMOTE_HOST=http://$(hostname):5556 \
+  --privileged \
+  wxp64-ie7
 ```
 
 Options:
