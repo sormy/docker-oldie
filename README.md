@@ -188,7 +188,8 @@ Options:
   - `5555` is used by Selenium node by default
 - `-e {varName}={varValue}` - pass environment variable to container
   - `SELENIUM_PORT` - run selenium node on this port (`5555` by default)
-  - `SELENIUM_HUB` - http://selenium-hub.domain.com:4444/grid/register
+  - `SELENIUM_HUB` - hub public url including port like `http://selenium-hub.domain.com:4444`
+  - `REMOTE_HOST` - node public url including port like `http://selenium-node-1.domain.com:5555`
   - `SELENIUM_INSTANCES` - number of allowed browser instances (`1` by default)
   - `VNC_PORT` - run VNC screen on this port (`5900` by default, must be not lower than `5900`)
   - `QEMU_RAM` - amount of RAM in MB shared with QEMU instance (`512` by default)
@@ -197,6 +198,9 @@ You could run multiple containers using different VNC and Selenium ports.
 
 If you don't need to see what is happening on instance using VNC viewer then
 just don't forward VNC port.
+
+It is recommended to use Selenium Server hub v2.53.1. The recommended docker image
+for hub is <https://github.com/sormy/docker-selenium>.
 
 ## FAQ
 
