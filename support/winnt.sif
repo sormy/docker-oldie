@@ -58,5 +58,5 @@ Home_Page=about:blank
 [Display]
 XResolution={screenWidth}
 YResolution={screenHeight}
-BitsPerPel={colorDepth}
+BitsPerPel={screenDepth}
 VRefresh={refreshRate}

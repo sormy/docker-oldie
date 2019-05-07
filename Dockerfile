@@ -13,7 +13,7 @@ ARG QEMU_NET=virtio
 ARG QEMU_DISK=virtio
 ARG SCREEN_WIDTH=1024
 ARG SCREEN_HEIGHT=768
-ARG COLOR_DEPTH=32
+ARG SCREEN_DEPTH=32
 ARG REFRESH_RATE=60
 
 # Runtime parameters.
@@ -120,7 +120,7 @@ RUN TARGET_DIR=`[ "$WIN_ARCH" = 32 ] && echo "I386" || echo "AMD64"` \
     && sed -i "s/{orgName}/$ORG_NAME/g" install/$TARGET_DIR/WINNT.SIF \
     && sed -i "s/{screenWidth}/$SCREEN_WIDTH/g" install/$TARGET_DIR/WINNT.SIF \
     && sed -i "s/{screenHeight}/$SCREEN_HEIGHT/g" install/$TARGET_DIR/WINNT.SIF \
-    && sed -i "s/{colorDepth}/$COLOR_DEPTH/g" install/$TARGET_DIR/WINNT.SIF \
+    && sed -i "s/{screenDepth}/$SCREEN_DEPTH/g" install/$TARGET_DIR/WINNT.SIF \
     && sed -i "s/{refreshRate}/$REFRESH_RATE/g" install/$TARGET_DIR/WINNT.SIF \
     && rm winnt.sif
 

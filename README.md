@@ -122,7 +122,7 @@ Build Arguments:
 - `QEMU_DISK` - QEMU disk device model (`virtio` by default)
 - `SCREEN_WIDTH` - screen width (`1024` by default)
 - `SCREEN_HEIGHT` - screen height (`768` by default)
-- `COLOR_DEPTH` - color depth (`32` bits by default)
+- `SCREEN_DEPTH` - color depth (`32` bits by default)
 - `REFRESH_RATE` - refresh rate (`60` Hz by default)
 
 ## Building locally on the host
