@@ -6,12 +6,11 @@ VNC_SCREEN=$(echo ${VNC_PORT} - 5900 | bc)
 # detected selenium server role and related properties
 if [ -n "$SELENIUM_HUB" ]; then
   SELENIUM_EXTRA_ARGS="-role node -hub $SELENIUM_HUB/grid/register"
-fi
 else
   SELENIUM_EXTRA_ARGS="-role hub"
 fi
 
-# append node public url that is reachable top hub
+# append node public url that is reachable by hub
 if [ -n "$REMOTE_HOST" ]; then
   SELENIUM_EXTRA_ARGS="${SELENIUM_EXTRA_ARGS} -remoteHost $REMOTE_HOST"
 fi
