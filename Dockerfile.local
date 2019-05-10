@@ -30,7 +30,7 @@ ADD start-node.bat /opt/qemu/
 RUN chmod +x /opt/qemu/*.sh
 
 RUN apt-get update \
-    && apt-get install -y qemu-kvm samba bc kmod \
+    && apt-get install -y qemu-kvm samba bc \
     && rm -rf /var/lib/apt/lists/*
 
 # QEMU 2.8 is consistently crashing inside Docker container.

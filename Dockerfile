@@ -47,7 +47,7 @@ RUN chmod +x /opt/qemu/*.sh
 
 # Install runtime and build-time dependencies.
 RUN apt-get update \
-    && apt-get install -y qemu-kvm samba bc kmod \
+    && apt-get install -y qemu-kvm samba bc \
     && apt-get install -y wget genisoimage p7zip-full \
     && rm -rf /var/lib/apt/lists/*
 
