@@ -4,15 +4,15 @@
 VNC_SCREEN=$(echo ${VNC_PORT} - 5900 | bc)
 
 # detected selenium server role and related properties
-if [ -n "$SELENIUM_HUB" ]; then
-  SELENIUM_EXTRA_ARGS="-role node -hub $SELENIUM_HUB/grid/register"
+if [ -n "$HUB_HOST" ]; then
+  SE_OPTS="-role node -hub $HUB_HOST/grid/register"
 else
-  SELENIUM_EXTRA_ARGS="-role hub"
+  SE_OPTS="-role hub"
 fi
 
 # append node public url that is reachable by hub
 if [ -n "$REMOTE_HOST" ]; then
-  SELENIUM_EXTRA_ARGS="${SELENIUM_EXTRA_ARGS} -remoteHost $REMOTE_HOST"
+  SE_OPTS="${SE_OPTS} -remoteHost $REMOTE_HOST"
 fi
 
 # create directory that will be shared with guest
@@ -22,9 +22,9 @@ mkdir -p /opt/qemu/shared
 cp /opt/qemu/start-node.bat /opt/qemu/shared/start-node.bat
 
 # inject selenium properties into start-node
-sed -i 's!{seleniumPort}!'"$SELENIUM_PORT"'!g' /opt/qemu/shared/start-node.bat
-sed -i 's!{seleniumExtraArgs}!'"$SELENIUM_EXTRA_ARGS"'!g' /opt/qemu/shared/start-node.bat
-sed -i 's!{seleniumInstances}!'"$SELENIUM_INSTANCES"'!g' /opt/qemu/shared/start-node.bat
+sed -i 's!{nodePort}!'"$NODE_PORT"'!g' /opt/qemu/shared/start-node.bat
+sed -i 's!{seOpts}!'"$SE_OPTS"'!g' /opt/qemu/shared/start-node.bat
+sed -i 's!{nodeMaxInstances}!'"$NODE_MAX_INSTANCES"'!g' /opt/qemu/shared/start-node.bat
 
 # generate mac address if not already available or read previously generated
 # 52:54:00 is well-known vendor prefix for QEMU virtual adapters
@@ -46,4 +46,4 @@ qemu-system-x86_64 \
   -usb \
   -device usb-tablet \
   -vga $QEMU_VGA \
-  -nic user,model=$QEMU_NET,smb=/opt/qemu/shared,mac=${MAC_ADDR},hostfwd=tcp::${SELENIUM_PORT}-:${SELENIUM_PORT}
+  -nic user,model=$QEMU_NET,smb=/opt/qemu/shared,mac=${MAC_ADDR},hostfwd=tcp::${NODE_PORT}-:${NODE_PORT}

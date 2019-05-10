@@ -214,7 +214,7 @@ docker run \
   -d \
   -p 5900:5900 \
   -p 5555:5555 \
-  -e SELENIUM_HUB=http://selenium-hub.domain.com:4444 \
+  -e HUB_HOST=http://selenium-hub.domain.com:4444 \
   -e REMOTE_HOST=http://$(hostname):5555 \
   --privileged \
   wxp64-ie7
@@ -224,7 +224,7 @@ docker run \
   -d \
   -p 5901:5900 \
   -p 5556:5555 \
-  -e SELENIUM_HUB=http://selenium-hub.domain.com:4444 \
+  -e HUB_HOST=http://selenium-hub.domain.com:4444 \
   -e REMOTE_HOST=http://$(hostname):5556 \
   --privileged \
   wxp64-ie7
@@ -238,12 +238,16 @@ Options:
   - `5900` is used for VNC by default
   - `5555` is used by Selenium node by default
 - `-e {varName}={varValue}` - pass environment variable to container
-  - `SELENIUM_PORT` - run selenium node on this port (`5555` by default)
-  - `SELENIUM_HUB` - hub public url including port like `http://selenium-hub.domain.com:4444`
+  - `NODE_PORT` - run selenium node on this port (`5555` by default).
+    It is not recommended to change this port, you could change host port on docker
+    level and provide right `REMOTE_HOST` value including host port.
+  - `HUB_HOST` - hub public url including port like `http://selenium-hub.domain.com:4444`
   - `REMOTE_HOST` - node public url including port like `http://selenium-node-1.domain.com:5555`
-  - `SELENIUM_INSTANCES` - number of allowed browser instances (`1` by default)
-  - `VNC_PORT` - run VNC screen on this port (`5900` by default, must be not lower than `5900`)
-  - `QEMU_RAM` - amount of RAM in MB shared with QEMU instance (`512` by default)
+  - `NODE_MAX_INSTANCES` - number of allowed browser instances (`1` by default)
+  - `VNC_PORT` - run VNC screen on this port (`5900` by default, must be not lower than `5900`).
+    It is not recommended to change this port, you could change host port on docker level.
+  - `QEMU_RAM` - amount of RAM in MB shared with QEMU instance (`512` by default).
+    Change this value depending on number of instances you would like to run in container.
 
 You could run multiple containers using different VNC and Selenium ports.
 
