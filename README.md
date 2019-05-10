@@ -106,6 +106,18 @@ docker build \
   -t wxp64-ie7 .
 ```
 
+Example (IE7 running on Windows XP 32bit):
+
+```bash
+docker build \
+  --build-arg PRODUCT_KEY=AAAAA-BBBBB-CCCCC-DDDDD-EEEEE \
+  --build-arg IE_VERSION=7 \
+  --build-arg WIN_ARCH=32 \
+  --build-arg QEMU_VGA=qxl \
+  --build-arg ORG_NAME=MyOrg \
+  -t wxp32-ie7 .
+```
+
 Build Arguments:
 
 - `PRODUCT_KEY` - Windows XP Pro Corporate Product Key (**required**)
@@ -127,8 +139,9 @@ Build Arguments:
 
 ## Building locally on the host
 
-The building process is much faster and easier to debug if system image build
-is performed on host and then system image is copied into container.
+The building process is much faster (if kvm is available) and easier to debug
+if system image build is performed on host and then system image is copied into
+container.
 
 Local building script is not cleaning up after for debugging purposes.
 
@@ -143,7 +156,7 @@ brew install qemu coreutils gnu-sed wget cdrtools p7zip
 brew install tiger-vnc
 ```
 
-These dependencies need to be installed to build on Debian/Ubuntu:
+These dependencies need to be installed to build on Debian-like distro:
 
 ```
 apt-get install -y qemu-kvm bc wget genisoimage p7zip-full
@@ -160,9 +173,11 @@ Usage:
 ```
 # create build and docker scripts
 ./local-configure
+
 # build system image, pass build arguments using shell environment varibles
 PRODUCT_KEY={PRODUCT_KEY} IE_VERSION={IE_VERSION} WIN_ARCH={WIN_ARCH} QEMU_VGA={QEMU_VGA} ./local-build
-# build docker image
+
+# build docker image, pass build arguments using docker build arguments
 cp -v Dockerfile.local build/Dockerfile
 cd build \
   && docker build --build-arg QEMU_VGA={QEMU_VGA} -t {IMAGE_NAME} . \
