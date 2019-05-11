@@ -11,6 +11,7 @@ ARG QEMU_RAM=512
 ARG QEMU_VGA
 ARG QEMU_NET=virtio
 ARG QEMU_DISK=virtio
+ARG QEMU_BALLOON=0
 ARG SCREEN_WIDTH=1024
 ARG SCREEN_HEIGHT=768
 ARG SCREEN_DEPTH=32
@@ -72,7 +73,7 @@ RUN if [ "$WIN_ARCH" = 64 ]; then \
     fi
 
 # Install VirtIO drivers.
-RUN if [ "$QEMU_DISK" = "virtio" ] || [ "$QEMU_NET" = "virtio" ] || [ "$QEMU_VGA" = "qxl" ]; then \
+RUN if [ "$QEMU_DISK" = "virtio" ] || [ "$QEMU_NET" = "virtio" ] || [ "$QEMU_VGA" = "qxl" ] || [ "$QEMU_BALLOON" = 1 ]; then \
       wget https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/archive-virtio/virtio-win-0.1.164-2/virtio-win-0.1.164.iso \
       && sha256sum virtio-win-0.1.164.iso \
         | grep -q 594678f509ba6827c7b75d076ecfb64d45c6ad95e9fccba7258e6eee9a6a3560 \
@@ -87,6 +88,9 @@ RUN if [ "$QEMU_DISK" = "virtio" ] || [ "$QEMU_NET" = "virtio" ] || [ "$QEMU_VGA
           || true) \
       && ([ "$QEMU_VGA" = "qxl" ] && [ "$WIN_ARCH" = 32 ] \
           && cp -v virtio-win/qxl/$DRIVER_PATH/* 'install/$oem$/$1/drivers' \
+          || true) \
+      && ([ "$QEMU_BALLOON" = 1 ] \
+          && cp -v virtio-win/Balloon/$DRIVER_PATH/* 'install/$oem$/$1/drivers' \
           || true) \
       && rm -rf virtio-win virtio-win-0.1.164.iso; \
     fi

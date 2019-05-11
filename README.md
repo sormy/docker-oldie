@@ -292,6 +292,8 @@ These are features I think could be valuable for this project:
 - IE 5.5 (using Windows 2000 Pro)
 - Add Docker HEALTHCHECK
 - Test different accel value: kvm, xen, hax
+- QEMU balloon driver and service
+- QEMU guest agent
 
 ## License
 

@@ -77,6 +77,10 @@ npm install
 npm install http-server -g
 ```
 
+## Balloon driver
+
+https://wiki.archlinux.org/index.php/QEMU#Balloon_driver
+
 ## Links
 
 * https://github.com/kevinwallace/qemu-docker
