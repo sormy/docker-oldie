@@ -1,4 +1,1 @@
 build
-files/.keep
-!build/system.qcow2
-local-build

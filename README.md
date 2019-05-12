@@ -257,6 +257,28 @@ just don't forward VNC port.
 It is recommended to use Selenium Server hub v2.53.1. The recommended docker image
 for hub is <https://github.com/sormy/docker-selenium>.
 
+## Amazon Linux and ECR
+
+This image could be also built using Amazon Linux as base for deployment to ECR.
+
+Run the command below to generate `Dockerfile.amazonlinux`:
+
+```
+./amazonlinux-configure
+```
+
+Building:
+
+```
+docker build \
+  --build-arg PRODUCT_KEY={PRODUCT_KEY} \
+  --build-arg IE_VERSION={IE_VERSION} \
+  --build-arg WIN_ARCH={WIN_ARCH} \
+  --build-arg QEMU_VGA={QEMU_VGA} \
+  -f Dockerfile.amazonlinux \
+  -t {IMAGE_NAME} .
+```
+
 ## FAQ
 
 * Q: Why does this script check SHA256 for all files?
@@ -294,6 +316,7 @@ These are features I think could be valuable for this project:
 - Test different accel value: kvm, xen, hax
 - QEMU balloon driver and service
 - QEMU guest agent
+- AWS ECR REMOTE_HOST auto discovery
 
 ## License
 

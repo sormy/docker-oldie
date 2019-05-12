@@ -1,4 +1,4 @@
-FROM debian:buster
+FROM amazonlinux
 
 LABEL maintainer="art.sormy@gmail.com"
 
@@ -40,13 +40,15 @@ RUN [ -n "$QEMU_VGA" ]
 WORKDIR /opt/qemu
 
 # Install runtime and build-time dependencies.
-RUN apt-get update \
-    && apt-get install -y qemu-kvm samba bc \
-    && apt-get install -y wget genisoimage p7zip-full \
-    && rm -rf /var/lib/apt/lists/*
+RUN yum update -y && yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm \
+    && yum install -y  samba bc \
+    && yum install -y wget genisoimage p7zip p7zip-plugins \
+    && true
 
 # Build from source for Amazon Linux
 # BUILD:QEMU
+ADD support/install-qemu.sh .
+RUN chmod +x ./install-qemu.sh && ./install-qemu.sh && rm ./install-qemu.sh
 
 # Add required but not publicly available installation files.
 ADD files/*.iso ./
@@ -236,8 +238,8 @@ RUN qemu-system-x86_64 \
 RUN rm -rf install *.iso
 
 # Remove not needed anymore tools.
-RUN apt-get remove -y wget genisoimage p7zip-full \
-    && apt-get autoremove -y
+RUN yum remove -y wget genisoimage p7zip p7zip-plugins \
+    && yum autoremove -y
 
 # Add main runtime support files.
 ADD support/entrypoint.sh .

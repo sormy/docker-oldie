@@ -81,6 +81,10 @@ npm install http-server -g
 
 https://wiki.archlinux.org/index.php/QEMU#Balloon_driver
 
+## Guest agent
+
+https://wiki.qemu.org/index.php/Features/GuestAgent
+
 ## Links
 
 * https://github.com/kevinwallace/qemu-docker
