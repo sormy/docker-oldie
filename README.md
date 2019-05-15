@@ -203,7 +203,7 @@ These build arguments must be also passed to `docker build` command:
 Run container:
 
 ```bash
-docker run -d -p 5900:5900 -p 5555:5555 --privileged {IMAGE_NAME}
+docker run -d -p 5900:5900 -p 5555:5555 --cap-add=NET_ADMIN {IMAGE_NAME}
 ```
 
 Example (running node that joins the hub):
@@ -216,7 +216,7 @@ docker run \
   -p 5555:5555 \
   -e HUB_HOST=http://selenium-hub.domain.com:4444 \
   -e REMOTE_HOST=http://$(hostname):5555 \
-  --privileged \
+  --cap-add=NET_ADMIN \
   wxp64-ie7
 
 # run second selenium node reachable by http://selenium-node-2.domain.com:5556
@@ -226,13 +226,13 @@ docker run \
   -p 5556:5555 \
   -e HUB_HOST=http://selenium-hub.domain.com:4444 \
   -e REMOTE_HOST=http://$(hostname):5556 \
-  --privileged \
+  --cap-add=NET_ADMIN \
   wxp64-ie7
 ```
 
 Options:
 
-- `--privileged` - required to make network access working inside QEMU guest
+- `--cap-add=NET_ADMIN` - required to make network access working inside QEMU guest
 - `-v /dev/kvm:/dev/kvm` - enable nested kvm virtualization if available
 - `-p {hostPort}:{guestPort}` - forward port to container
   - `5900` is used for VNC by default
