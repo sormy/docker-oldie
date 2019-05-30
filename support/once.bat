@@ -68,36 +68,44 @@ reg add "HKLM\SYSTEM\CurrentControlSet\Control\CrashControl" /v AutoReboot /t RE
 echo Registering auto start script...
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Run" /v provision /t REG_SZ /d "c:\provision\start.bat" /f > nul
 
-if exist jre-7u80-windows-i586.exe (
-  echo Installing Java 7...
-  start /wait jre-7u80-windows-i586.exe /s
+if exist java-1.8.0-openjdk.windows.x86.msi (
+  echo Installing Java 8...
+  start /wait java-1.8.0-openjdk.windows.x86.msi /passive /norestart
+  del /f /q java-1.8.0-openjdk.windows.x86.msi
+)
 
-  echo Disabling Java 7 auto update...
-  reg delete "HKLM\Software\Microsoft\Windows\CurrentVersion\Run" /v SunJavaUpdateSched /f > nul
+if exist java-1.8.0-openjdk.windows.x86_64.msi (
+  echo Installing Java 8...
+  start /wait java-1.8.0-openjdk.windows.x86_64.msi /passive /norestart
+  del /f /q java-1.8.0-openjdk.windows.x86_64.msi
 )
 
 if exist IE7-WindowsXP-x86-enu.exe (
   echo Installing Internet Explorer 7...
   start /wait IE7-WindowsXP-x86-enu.exe /passive /norestart
+  del /f /q IE7-WindowsXP-x86-enu.exe
 )
 
 if exist IE7-WindowsServer2003-x64-enu.exe (
   echo Installing Internet Explorer 7...
   start /wait IE7-WindowsServer2003-x64-enu.exe /passive /norestart
+  del /f /q IE7-WindowsServer2003-x64-enu.exe
 )
 
 if exist IE8-WindowsXP-KB2936068-x86-ENU.exe (
   echo Installing Internet Explorer 8...
   start /wait IE8-WindowsXP-KB2936068-x86-ENU.exe /passive /norestart
+  del /f /q IE8-WindowsXP-KB2936068-x86-ENU.exe
 )
 
 if exist IE8-WindowsServer2003-x64-ENU.exe (
   echo Installing Internet Explorer 8...
   start /wait IE8-WindowsServer2003-x64-ENU.exe /passive /norestart
+  del /f /q IE8-WindowsServer2003-x64-ENU.exe
 )
 
 echo Shutting down...
 shutdown /s /t 0
 
 echo Waiting...
-pause
+pause > nul

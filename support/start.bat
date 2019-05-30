@@ -1,11 +1,38 @@
 @echo off
 
-echo Mounting Z: drive...
-net use z: \\10.0.2.4\qemu /persistent:no > nul
+: script could be executed before network address obtained over dhcp so 10s delay is added here
+echo Waiting for connection...
+ping localhost -n 11 > nul
 
+: extract ip address
+for /f "tokens=1-2 delims=:" %%a in ('ipconfig^|find "Gateway"') do set GATEWAY_ADDRESS=%%b
+if "%GATEWAY_ADDRESS%"==" " (
+  : unset variable
+  set GATEWAY_ADDRESS=
+) else (
+  : trim spaces in ip address
+  for /f "usebackq tokens=*" %%a in (`echo %GATEWAY_ADDRESS%`) do set GATEWAY_ADDRESS=%%a
+)
+
+: in worst case scenario we can't really do anything better than that
+if "%GATEWAY_ADDRESS%"=="" (
+  echo Unable to obtain the address. Press any key to restart...
+  pause > nul
+  shutdown /r /t 0
+)
+
+: generated node start file is located here
+echo Mounting Z: drive...
+net use z: \\%GATEWAY_ADDRESS%\qemu /persistent:no > nul
+
+: download node start file
 echo Downloading start script...
 copy /y z:\start-node.bat c:\provision\start-node.bat > nul
 
+: run node start file
 echo Executing start script...
 cd /d c:\provision
 call c:\provision\start-node.bat
+
+: don't close console automatically (wait for keypress)
+pause > nul

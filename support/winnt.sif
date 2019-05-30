@@ -32,9 +32,9 @@ OemSkipWelcome=1
 
 [UserData]
 ProductKey={productKey}
-FullName="oldie"
+FullName="{fullName}"
 OrgName="{orgName}"
-ComputerName="oldie-pc"
+ComputerName="{computerName}"
 
 [RegionalSettings]
 LanguageGroup=1

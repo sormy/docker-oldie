@@ -6,26 +6,15 @@ reg add "HKCU\Software\Microsoft\Internet Explorer\PhishingFilter" /v ShownVerif
 reg add "HKCU\Software\Microsoft\Internet Explorer\PhishingFilter" /v Enabled /t REG_DWORD /d 0 /f > nul
 
 : these variables should be set by main script
-set NODE_PORT={nodePort}
+set SE_LOG_LEVEL={seLogLevel}
 set SE_OPTS={seOpts}
-set NODE_MAX_INSTANCES={nodeMaxInstances}
+set SE_BROWSER={seBrowser}
 
-: read internet explorer version directly from registry
-: IE_VERSION will have full version like A.B.C.D
-: IE_MAJOR_VERSION will have only major version like A
-reg query "HKLM\Software\Microsoft\Internet Explorer" /v Version | findstr /rc:REG_SZ > ie-version-reg.txt
-for /f "tokens=3" %%a in (ie-version-reg.txt) do set IE_VERSION=%%a
-del /f /q ie-version-reg.txt
-for /f "tokens=1 delims=." %%a in ("%IE_VERSION%") do set IE_MAJOR_VERSION=%%a
-
-echo Internet Explorer version: %IE_MAJOR_VERSION% (%IE_VERSION%)
-
-: add Java to PATH (needed for Windows XP x64)
-set PATH=%PATH%;%ProgramFiles%\Java\jre7\bin;%ProgramFiles(x86)%\Java\jre7\bin
-
+: starting selenium server node
 echo Starting Selenium Server...
-java -Dselenium.LOGGER.level=WARNING ^
+java ^
+  -Dselenium.LOGGER.level=%SE_LOG_LEVEL% ^
   -Dwebdriver.ie.driver=./IEDriverServer.exe ^
-  -jar selenium-server-standalone-2.46.0.jar ^
-  -port %NODE_PORT% %SE_OPTS% ^
-  -browser "browserName=internet explorer,version=%IE_MAJOR_VERSION%,platform=WINDOWS,maxInstances=%NODE_MAX_INSTANCES%"
+  -jar selenium-server-standalone.jar ^
+  %SE_OPTS% ^
+  -browser "%SE_BROWSER%"
