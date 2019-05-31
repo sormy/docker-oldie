@@ -252,6 +252,7 @@ Options:
     - `VNC_DISABLED` - Set to `0` to disable VNC (enabled by default).
   - Selenium options:
     - `SE_HUB` - Selenium Hub public URL including port like `http://selenium-hub.domain.com:4444`.
+      If this value is not passed than Selenium Server will start standalone node.
     - `SE_REMOTE_HOST` - Selenium Node public URL including port like `http://selenium-node-1.domain.com:5555`.
       - This value is auto discovered if container is running on ECS.
     - `SE_OPTS` - Other Selenium Server options to pass to Selenium Node.
