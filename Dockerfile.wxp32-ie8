@@ -1,0 +1,228 @@
+FROM amazonlinux
+
+LABEL maintainer="art.sormy@gmail.com"
+
+# windows options
+ARG PRODUCT_KEY
+ARG FULL_NAME=oldie
+ARG ORG_NAME=oldie
+ARG COMPUTER_NAME=OLDIE-PC
+
+# qemu options
+ARG QEMU_RAM=512
+ENV QEMU_RAM=${QEMU_RAM}
+ARG QEMU_VGA=cirrus
+ENV QEMU_VGA=${QEMU_VGA}
+ARG QEMU_NET=rtl8139
+ENV QEMU_NET=${QEMU_NET}
+ARG QEMU_DISK=virtio
+ENV QEMU_DISK=${QEMU_DISK}
+
+# selenium server options
+ENV SE_PORT=5555
+ENV SE_HUB=
+ENV SE_REMOTE_HOST=
+ENV SE_LOG_LEVEL=WARNING
+ENV SE_OPTS=
+
+# selenium browser options
+ENV BROWSER_NAME="internet explorer"
+ENV BROWSER_VERSION=8
+ENV BROWSER_PLATFORM=WINDOWS
+ENV BROWSER_MAX_INSTANCES=1
+
+# screen options
+ARG SCREEN_WIDTH=1024
+ARG SCREEN_HEIGHT=768
+ARG SCREEN_DEPTH=32
+ARG REFRESH_RATE=60
+
+# vnc options
+ENV VNC_ENABLED=1
+ENV VNC_PORT=5900
+
+# sanity checks
+RUN [ -n "$PRODUCT_KEY" ]
+
+# create and set working directory
+WORKDIR /opt/qemu
+
+# install build, compile and runtime dependencies
+RUN set -ex; \
+    yum update -y; \
+    yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm; \
+    yum install -y genisoimage tar bzip2 gzip xz p7zip p7zip-plugins; \
+    yum install -y gcc make bison flex; \
+    yum install -y glib2 zlib pixman libaio; \
+    yum install -y glib2-devel zlib-devel pixman-devel libaio-devel; \
+    yum install -y jq iproute dnsmasq samba socat iptables
+
+# build qemu
+ARG QEMU_SRC_URL=https://download.qemu.org/qemu-4.0.0.tar.xz
+ARG QEMU_SRC_SHA256=13a93dfe75b86734326f8d5b475fde82ec692d5b5a338b4262aeeb6b0fa4e469
+ARG QEMU_CONF_OPTS="--target-list=x86_64-softmmu --enable-linux-aio"
+RUN set -ex; \
+    QEMU_SRC_FILENAME=$(basename $QEMU_SRC_URL); \
+    curl -# -JL -o $QEMU_SRC_FILENAME $QEMU_SRC_URL; \
+    sha256sum $QEMU_SRC_FILENAME | grep -q $QEMU_SRC_SHA256; \
+    mkdir -p qemu-src; \
+    tar --strip-components 1 -xvf $QEMU_SRC_FILENAME -C qemu-src; \
+    cd qemu-src; \
+    mkdir build; \
+    cd build; \
+    ../configure $QEMU_CONF_OPTS; \
+    make; \
+    make install; \
+    cd ../..; \
+    rm -rf qemu-src; \
+    rm -f $QEMU_SRC_FILENAME
+
+# unpack vanilla windows iso
+ARG WIN_ISO_FILE=en_windows_xp_professional_with_service_pack_3_x86_cd_vl_x14-73974.iso
+ARG WIN_ISO_SHA256=fd8c8d42c1581e8767217fe800bfc0d5649c0ad20d754c927d6c763e446d1927
+ARG WIN_ARCH=I386
+COPY files/$WIN_ISO_FILE install.org.iso
+RUN set -ex; \
+    7z x -o'install' install.org.iso; \
+    rm install.org.iso
+
+# install virtio drivers
+ARG VIRTIO_ISO_URL=https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/archive-virtio/virtio-win-0.1.164-2/virtio-win-0.1.164.iso
+ARG VIRTIO_ISO_SHA256=594678f509ba6827c7b75d076ecfb64d45c6ad95e9fccba7258e6eee9a6a3560
+ARG VIRTIO_ARCH=xp/x86
+RUN set -ex; \
+    VIRTIO_ISO_FILENAME=$(basename $VIRTIO_ISO_URL); \
+    curl -# -JL -o $VIRTIO_ISO_FILENAME $VIRTIO_ISO_URL; \
+    sha256sum $VIRTIO_ISO_FILENAME | grep -q $VIRTIO_ISO_SHA256; \
+    7z x -o'virtio' $VIRTIO_ISO_FILENAME; \
+    mkdir -p 'install/$oem$/$1/drivers'; \
+    cp -v virtio/{viostor,NetKVM}/$VIRTIO_ARCH/* 'install/$oem$/$1/drivers'; \
+    rm -rf virtio; \
+    rm -f $VIRTIO_ISO_FILENAME
+
+# install winnt.sif for unattended installation
+COPY support/winnt.sif install/$WIN_ARCH/WINNT.SIF
+RUN sed -i \
+        -e "s!{productKey}!$PRODUCT_KEY!g" \
+        -e "s!{fullName}!$FULL_NAME!g" \
+        -e "s!{orgName}!$ORG_NAME!g" \
+        -e "s!{computerName}!$COMPUTER_NAME!g" \
+        -e "s!{screenWidth}!$SCREEN_WIDTH!g" \
+        -e "s!{screenHeight}!$SCREEN_HEIGHT!g" \
+        -e "s!{screenDepth}!$SCREEN_DEPTH!g" \
+        -e "s!{refreshRate}!$REFRESH_RATE!g" \
+        install/$WIN_ARCH/WINNT.SIF
+
+# install viostor for windows text mode installation
+COPY support/txtsetup.sif .
+RUN set -ex; \
+    cp -v 'install/$oem$/$1/drivers/viostor.sys' install/$WIN_ARCH; \
+    sed -i '$ d' install/$WIN_ARCH/TXTSETUP.SIF; \
+    cat txtsetup.sif >> install/$WIN_ARCH/TXTSETUP.SIF; \
+    rm -f txtsetup.sif
+
+# create provision directory
+RUN mkdir -p 'install/$oem$/$1/provision/install'
+
+# install java msi installer
+ARG JAVA_MSI_URL=https://github.com/ojdkbuild/ojdkbuild/releases/download/1.8.0.212-1/java-1.8.0-openjdk-1.8.0.212-1.b04.ojdkbuild.windows.x86.msi
+ARG JAVA_MSI_SHA256=2e2d8a7ac215ce81c7e8cd52d0cd590afedb535018de87884fdaafa168cd292e
+RUN set -ex; \
+    JAVA_MSI_FILENAME=$(basename $JAVA_MSI_URL); \
+    curl -# -JL -o $JAVA_MSI_FILENAME $JAVA_MSI_URL; \
+    sha256sum $JAVA_MSI_FILENAME | grep -q $JAVA_MSI_SHA256; \
+    mv -v $JAVA_MSI_FILENAME 'install/$oem$/$1/provision/install'
+
+# install selenium server
+ARG SELENIUM_SERVER_URL=https://selenium-release.storage.googleapis.com/3.141/selenium-server-standalone-3.141.59.jar
+ARG SELENIUM_SERVER_SHA256=acf71b77d1b66b55db6fb0bed6d8bae2bbd481311bcbedfeff472c0d15e8f3cb
+RUN set -ex; \
+    curl -# -JL -o selenium-server-standalone.jar $SELENIUM_SERVER_URL; \
+    sha256sum selenium-server-standalone.jar | grep -q $SELENIUM_SERVER_SHA256; \
+    mv -v selenium-server-standalone.jar 'install/$oem$/$1/provision'
+
+# install internet explorer driver for selenium server
+ARG IE_DRIVER_URL=https://selenium-release.storage.googleapis.com/2.46/IEDriverServer_Win32_2.46.0.zip
+ARG IE_DRIVER_SHA256=70d4e5887e527352aa40bf682338bccf005c1b972c58f3e2a605eea1a2bb986f
+RUN set -ex; \
+    IE_DRIVER_FILENAME=$(basename $IE_DRIVER_URL); \
+    curl -# -JL -o $IE_DRIVER_FILENAME $IE_DRIVER_URL; \
+    sha256sum $IE_DRIVER_FILENAME | grep -q $IE_DRIVER_SHA256; \
+    7z x -o'install/$oem$/$1/provision' $IE_DRIVER_FILENAME; \
+    rm -f $IE_DRIVER_FILENAME
+
+# install internet explorer
+ARG IE_INSTALL_URL=https://download.microsoft.com/download/3/8/C/38CE0ABB-01FD-4C0A-A569-BC5E82C34A17/IE8-WindowsXP-KB2936068-x86-ENU.exe
+ARG IE_INSTALL_SHA256=8bda23c78cdcd9d01c364a01c6d639dfb2d11550a5521b8a81c808c1a2b1824e
+RUN if [ -n "$IE_INSTALL_URL" ]; then \
+      set -ex; \
+      IE_INSTALL_FILENAME=$(basename $IE_INSTALL_URL); \
+      curl -# -JL -o $IE_INSTALL_FILENAME $IE_INSTALL_URL; \
+      sha256sum $IE_INSTALL_FILENAME | grep -q $IE_INSTALL_SHA256; \
+      mv -v $IE_INSTALL_FILENAME 'install/$oem$/$1/provision/install'; \
+    fi
+
+# install provision support files
+COPY support/once.bat 'install/$oem$/$1/provision'
+COPY support/start.bat 'install/$oem$/$1/provision'
+
+# build windows installation iso
+RUN set -ex; \
+    genisoimage \
+      -no-emul-boot -boot-load-seg 1984 -boot-load-size 4 -b '[BOOT]/Boot-NoEmul.img' \
+      -iso-level 2 -J -l -D -N -joliet-long -relaxed-filenames \
+      -o install.iso install; \
+    rm -rf install
+
+# create qemu system disk
+RUN qemu-img create -f qcow2 system.qcow2 5G
+
+# install windows in unattended mode
+# NOTE: thread=single makes wxp64 stable otherwise BSOD STOP 0x000000D1 or 0x0000001E
+RUN qemu-system-x86_64 \
+      -accel kvm \
+      -accel tcg,thread=single \
+      -machine pc \
+      -m $QEMU_RAM \
+      -vnc :$(($VNC_PORT - 5900)) \
+      -drive media=disk,file=system.qcow2,format=qcow2,if=$QEMU_DISK,cache=none,aio=native \
+      -drive media=cdrom,file=install.iso \
+      -boot once=d \
+      -rtc base=utc \
+      -usb \
+      -device usb-tablet \
+      -vga $QEMU_VGA \
+      -nic user,model=$QEMU_NET,restrict=on
+
+# remove not needed anymore windows installation iso
+RUN rm -f install.iso
+
+# remove not needed anymore tools
+# NOTE: gzip is not removed here because removal causes an error:
+#       https://github.com/rpm-software-management/yum/issues/80
+RUN set -ex; \
+    yum remove -y genisoimage tar bzip2 xz p7zip p7zip-plugins; \
+    yum remove -y gcc make bison flex; \
+    yum remove -y glib2-devel zlib-devel pixman-devel libaio-devel; \
+    yum autoremove -y; \
+    yum clean all; \
+    rm -rf /var/cache/yum
+
+# install runtime support files
+COPY support/start-node.bat .
+
+# install entrypoint
+COPY support/entrypoint.sh .
+RUN chmod +x ./entrypoint.sh
+
+# expose ports
+EXPOSE 5555
+EXPOSE 5900
+
+# healthcheck
+HEALTHCHECK --start-period=180s --interval=30s --timeout=5s --retries=6 \
+  CMD curl -sSL http://localhost:${SE_PORT}/wd/hub/status \
+        | jq -r ".value.ready" | grep -q "true" || exit 1
+
+# entrypoint
+ENTRYPOINT ["/opt/qemu/entrypoint.sh"]

@@ -57,21 +57,6 @@ cp -v virtio/{viostor,qxl,NetKVM}/...
 yum uninstall -y spice-server-devel
 ```
 
-## Make scripts work on non-english OSes
-
-Replace IP address detection code in `start-node.bat` with:
-
-```
-wmic NICConfig where IPEnabled="True" get DefaultIPGateway /value
-```
-
-However wmic requires installation (performed on attempt to use it), so it is
-good to initialize it during image build in `once.bat` with:
-
-```
-wmic /? > nul
-```
-
 ## Mark devices as not external
 
 QEMU 4.x marks ethernet and storage devices as conneced to USB with hot plug.
@@ -126,7 +111,8 @@ reg add "HKCU\Control Panel\Desktop" /v ScreenSaveActive /t REG_DWORD /d 0 /f > 
 
 ## Change resolution in runtime
 
-<http://tools.taubenkorb.at/change-screen-resolution/>
+- <http://tools.taubenkorb.at/change-screen-resolution/>
+- http://qres.sourceforge.net/
 
 ## Disable PXE boot delay
 

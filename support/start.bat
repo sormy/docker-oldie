@@ -4,19 +4,15 @@
 echo Waiting for connection...
 ping localhost -n 11 > nul
 
-: extract ip address
-for /f "tokens=1-2 delims=:" %%a in ('ipconfig^|find "Gateway"') do set GATEWAY_ADDRESS=%%b
-if "%GATEWAY_ADDRESS%"==" " (
-  : unset variable
-  set GATEWAY_ADDRESS=
-) else (
-  : trim spaces in ip address
-  for /f "usebackq tokens=*" %%a in (`echo %GATEWAY_ADDRESS%`) do set GATEWAY_ADDRESS=%%a
-)
+: detect gateway ip address
+for /f "tokens=2 delims={}" %%a in ('
+  wmic /locale:ms_409 NICConfig where IPEnabled^="True" get DefaultIPGateway /value ^| findstr /r /v "^$"
+') do set "GATEWAY_ADDRESS=%%a"
+if not "%GATEWAY_ADDRESS%"=="" set GATEWAY_ADDRESS=%GATEWAY_ADDRESS:"=%
 
 : in worst case scenario we can't really do anything better than that
 if "%GATEWAY_ADDRESS%"=="" (
-  echo Unable to obtain the address. Press any key to restart...
+  echo Unable to obtain the gateway address. Press any key to restart...
   pause > nul
   shutdown /r /t 0
 )

@@ -20,7 +20,7 @@ Supported OS:
 Webdriver:
 
 - Selenium Server 3.x
-- OpenJDK 8 (32bit or 64bit)
+- OpenJDK 8 32bit (ojdkbuild)
 - IE Driver 2.46
 
 Virtualization:
@@ -71,19 +71,46 @@ Tested Windows XP images:
   * SHA1: cd9479e1dbad7f26b8bdcf97e4aa71cbb8de932b
   * SHA256: ace108a116ed33ddbfd6b7e2c5f21bcef9b3ba777ca9a8052730138341a3d67d
 
-OEM and Retail editions won't work because they require activation.
+OEM and Retail editions won't work because they require activation that should
+be performed just once. Container will try to do activation each time new
+container is started so eventually it will lead to phone activation prompt
+that can't be processed automatically.
 
-Other languages won't work because `start-node.bat` script is relying on English
-OS language.
+Images without service packs should work well but it was not tested.
 
-Images without service packs should work but it was not tested. `WIN_ISO_FILE`
-and `WIN_ISO_SHA256` must be explicily provided using Docker build arguments
-in that case.
+Images with other primary system language should also work but it was not tested.
+
+If you would like to use your Windows installation ISO then copy ISO to `files`
+directory and provide `WIN_ISO_FILE`, `WIN_ISO_SHA256` build arguments to
+Docker during the build.
 
 You could always confirm hashes for official MSDN distributions here:
 
 * https://msdn.lol-inter.net/
 * http://www.heidoc.net/php/myvsdump.php
+
+## Available Profiles
+
+- `wxp32-ie6` - Windows XP 32bit + Internet Explorer 6 + IE Driver 32bit
+- `wxp32-ie7` - Windows XP 32bit + Internet Explorer 7 + IE Driver 32bit
+- `wxp32-ie8` - Windows XP 32bit + Internet Explorer 8 + IE Driver 32bit
+- `wxp64-ie6` - Windows XP 64bit + Internet Explorer 6 + IE Driver 32bit
+- `wxp64-ie6-64` - Windows XP 64bit + Internet Explorer 6 + IE Driver 64bit
+- `wxp64-ie7` - Windows XP 64bit + Internet Explorer 7 + IE Driver 32bit
+- `wxp64-ie7-64` - Windows XP 64bit + Internet Explorer 7 + IE Driver 64bit
+- `wxp64-ie8` - Windows XP 64bit + Internet Explorer 8 + IE Driver 32bit
+- `wxp64-ie8-64` - Windows XP 64bit + Internet Explorer 8 + IE Driver 64bit
+
+All profiles are generated from `wxp32-ie6` with `./build-profiles.sh`.
+
+NOTE: Internet Explorer 64bit is slightly faster than 32bit.
+
+Java 64bit doesn't add performance but eats more RAM so there is no profile
+for it but you can use any OpenJDK 8 MSI x86 or x64 installer (on 64 bit OS).
+Just pass `JAVA_MSI_URL` and `JAVA_MSI_SHA256` build arguments to docker build
+command if you would like to use another OpenJDK build.
+
+List of OpenJDK builds: https://github.com/akullpp/awesome-java#jvm-and-jdk
 
 ## Building
 
@@ -95,6 +122,13 @@ during the build.
 
 The process should take around 45-60 mins.
 
+Two things to build the image:
+
+- Copy previosly legally obtained Windows XP installation ISO into `files`
+  directory.
+- Pass previosly legally obtained Windows XP product key as `PRODUCT_KEY` build
+  argument.
+
 Put Windows XP installation ISO file into `files` directory.
 
 Usage:
@@ -102,8 +136,7 @@ Usage:
 ```sh
 docker build \
   --build-arg PRODUCT_KEY={PRODUCT_KEY} \
-  --build-arg IE_VERSION={IE_VERSION} \
-  -f Dockerfile.{PLATFORM} \
+  -f Dockerfile.{PROFILE} \
   -t {IMAGE_NAME} .
 ```
 
@@ -112,7 +145,7 @@ Example (IE7 running on Windows XP 32bit):
 ```sh
 docker build \
   --build-arg PRODUCT_KEY=AAAAA-BBBBB-CCCCC-DDDDD-EEEEE \
-  --build-arg IE_VERSION=7 \
+  -f Dockerfile.wxp32-ie7 \
   -t wxp32-ie7 .
 ```
 
@@ -121,31 +154,12 @@ Example (IE7 running on Windows XP 64bit):
 ```sh
 docker build \
   --build-arg PRODUCT_KEY=AAAAA-BBBBB-CCCCC-DDDDD-EEEEE \
-  --build-arg IE_VERSION=7 \
-  -f Dockerfile.wxp64 \
+  -f Dockerfile.wxp64-ie7 \
   -t wxp64-ie7 .
 ```
 
 Build files have a lot of build arguments but almost all of them have reasonable
 defaults that are not recommended to change unless you know what you are doing.
-
-Use these build arguments to install OpenJDK 64bit on 64bit OS:
-
-```sh
-JAVA_MSI_URL=https://github.com/ojdkbuild/ojdkbuild/releases/download/1.8.0.212-1/java-1.8.0-openjdk-1.8.0.212-1.b04.ojdkbuild.windows.x86_64.msi
-JAVA_MSI_SHA256=eb49790e82220fc4a4884db5adc24d2dcd21e71d3f955acb8c29139355da3ac4
-JAVA_ARCH=x86_64
-```
-
-Use these build arguments to use Internet Explorer 64bit with Selenium on 64bit OS:
-
-```sh
-IE_DRIVER_URL=https://selenium-release.storage.googleapis.com/2.46/IEDriverServer_x64_2.46.0.zip
-IE_DRIVER_SHA256=2463b0bcaa87ae7043cac107b62abd65efa673100888860ce81a6ee7fdc2e940
-IE_DRIVER_ARCH=x64
-```
-
-NOTE: Internet Explorer 64bit is slightly faster than 32bit.
 
 ### Local + Docker
 
@@ -155,7 +169,12 @@ passed to Docker build context to finalize the image.
 
 The process should take around 45-60 mins.
 
-Put Windows XP installation ISO file into `files` directory.
+Two things to build the image:
+
+- Copy previosly legally obtained Windows XP installation ISO into `files`
+  directory.
+- Pass previosly legally obtained Windows XP product key as `PRODUCT_KEY`
+  environment variable to local build shell script.
 
 These dependencies need to be installed to build on macOS host:
 
@@ -184,23 +203,23 @@ Local build process has these steps:
 Generate local build scripts:
 
 ```sh
-./local-configure.sh {PLATFORM}
+./local-configure.sh {PROFILE}
 ```
 
 Follow instructions provided by shell script.
 
-Example instruction for `wxp32` platform:
+Example instruction for `wxp32-ie7` profile:
 
 ```
 Review produced local build scripts (IMPORTANT):
-    less ./local-build.wxp32.sh
-    less ./local-build.wxp32.docker
+    less ./local-build.wxp32-ie7.sh
+    less ./local-build.wxp32-ie7.docker
 
 Run local build script:
-    PRODUCT_KEY=ABCDE-ABCDE-ABCDE-ABCDE-ABCDE IE_VERSION=X ./local-build.wxp32.sh
+    PRODUCT_KEY=ABCDE-ABCDE-ABCDE-ABCDE-ABCDE ./local-build.wxp32-ie7.sh
 
 Finish in Docker:
-    docker build --build-arg IE_VERSION=X -f local-build.wxp32.docker -t wxp32-ieX build.wxp32
+    docker build -f local-build.wxp32-ie7.docker -t wxp32-ie7 build.wxp32-ie7
 ```
 
 QEMU screen will be available on VNC 5900 port by default during local build so
@@ -258,6 +277,8 @@ Options:
     - `SE_OPTS` - Other Selenium Server options to pass to Selenium Node.
       The list of available options you could see in Selenium Server help:
       `java selenium-server.jar -role node -h`
+    - `SE_LOG_LEVEL` - Selenium Server log level: `OFF`, `SEVERE`,
+      `WARNING` (default), `INFO`, `DEBUG` or `ALL`.
   - Browser options:
     - `BROWSER_MAX_INSTANCES` - Set max number of browser instances allowed to run
       at the same time (just one by default). It is recommended to set appropriate

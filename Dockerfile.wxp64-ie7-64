@@ -8,9 +8,6 @@ ARG FULL_NAME=oldie
 ARG ORG_NAME=oldie
 ARG COMPUTER_NAME=OLDIE-PC
 
-# internet explorer options
-ARG IE_VERSION=6
-
 # qemu options
 ARG QEMU_RAM=512
 ENV QEMU_RAM=${QEMU_RAM}
@@ -30,7 +27,7 @@ ENV SE_OPTS=
 
 # selenium browser options
 ENV BROWSER_NAME="internet explorer"
-ENV BROWSER_VERSION=${IE_VERSION}
+ENV BROWSER_VERSION=7
 ENV BROWSER_PLATFORM=WINDOWS
 ENV BROWSER_MAX_INSTANCES=1
 
@@ -46,7 +43,6 @@ ENV VNC_PORT=5900
 
 # sanity checks
 RUN [ -n "$PRODUCT_KEY" ]
-RUN [ "$IE_VERSION" = 6 ] || [ "$IE_VERSION" = 7 ] || [ "$IE_VERSION" = 8 ]
 
 # create and set working directory
 WORKDIR /opt/qemu
@@ -126,16 +122,16 @@ RUN set -ex; \
     rm -f txtsetup.sif
 
 # create provision directory
-RUN mkdir -p 'install/$oem$/$1/provision'
+RUN mkdir -p 'install/$oem$/$1/provision/install'
 
-# install java installer
+# install java msi installer
 ARG JAVA_MSI_URL=https://github.com/ojdkbuild/ojdkbuild/releases/download/1.8.0.212-1/java-1.8.0-openjdk-1.8.0.212-1.b04.ojdkbuild.windows.x86.msi
 ARG JAVA_MSI_SHA256=2e2d8a7ac215ce81c7e8cd52d0cd590afedb535018de87884fdaafa168cd292e
-ARG JAVA_ARCH=x86
 RUN set -ex; \
-    curl -# -JL -o java-1.8.0-openjdk.windows.$JAVA_ARCH.msi $JAVA_MSI_URL; \
-    sha256sum java-1.8.0-openjdk.windows.$JAVA_ARCH.msi | grep -q $JAVA_MSI_SHA256; \
-    mv -v java-1.8.0-openjdk.windows.$JAVA_ARCH.msi 'install/$oem$/$1/provision'
+    JAVA_MSI_FILENAME=$(basename $JAVA_MSI_URL); \
+    curl -# -JL -o $JAVA_MSI_FILENAME $JAVA_MSI_URL; \
+    sha256sum $JAVA_MSI_FILENAME | grep -q $JAVA_MSI_SHA256; \
+    mv -v $JAVA_MSI_FILENAME 'install/$oem$/$1/provision/install'
 
 # install selenium server
 ARG SELENIUM_SERVER_URL=https://selenium-release.storage.googleapis.com/3.141/selenium-server-standalone-3.141.59.jar
@@ -146,35 +142,24 @@ RUN set -ex; \
     mv -v selenium-server-standalone.jar 'install/$oem$/$1/provision'
 
 # install internet explorer driver for selenium server
-ARG IE_DRIVER_URL=https://selenium-release.storage.googleapis.com/2.46/IEDriverServer_Win32_2.46.0.zip
-ARG IE_DRIVER_SHA256=70d4e5887e527352aa40bf682338bccf005c1b972c58f3e2a605eea1a2bb986f
-ARG IE_DRIVER_ARCH=Win32
+ARG IE_DRIVER_URL=https://selenium-release.storage.googleapis.com/2.46/IEDriverServer_x64_2.46.0.zip
+ARG IE_DRIVER_SHA256=2463b0bcaa87ae7043cac107b62abd65efa673100888860ce81a6ee7fdc2e940
 RUN set -ex; \
-    curl -# -JL -o IEDriverServer_$IE_DRIVER_ARCH.zip $IE_DRIVER_URL; \
-    sha256sum IEDriverServer_$IE_DRIVER_ARCH.zip | grep -q $IE_DRIVER_SHA256; \
-    7z x -o'install/$oem$/$1/provision' IEDriverServer_$IE_DRIVER_ARCH.zip; \
-    rm -f IEDriverServer_$IE_DRIVER_ARCH.zip
+    IE_DRIVER_FILENAME=$(basename $IE_DRIVER_URL); \
+    curl -# -JL -o $IE_DRIVER_FILENAME $IE_DRIVER_URL; \
+    sha256sum $IE_DRIVER_FILENAME | grep -q $IE_DRIVER_SHA256; \
+    7z x -o'install/$oem$/$1/provision' $IE_DRIVER_FILENAME; \
+    rm -f $IE_DRIVER_FILENAME
 
-# install internet explorer 7
-ARG IE7_INSTALL_URL=https://download.microsoft.com/download/1/1/4/114d5b07-4dbc-42f3-96fa-2097e207d0af/IE7-WindowsServer2003-x64-enu.exe
-ARG IE7_INSTALL_SHA256=1050f2620a2646ca007a473953ee2e6cba6f561ce88df34a681e7680a4a6d032
-RUN if [ "$IE_VERSION" = 7 ]; then \
+# install internet explorer
+ARG IE_INSTALL_URL=https://download.microsoft.com/download/1/1/4/114d5b07-4dbc-42f3-96fa-2097e207d0af/IE7-WindowsServer2003-x64-enu.exe
+ARG IE_INSTALL_SHA256=1050f2620a2646ca007a473953ee2e6cba6f561ce88df34a681e7680a4a6d032
+RUN if [ -n "$IE_INSTALL_URL" ]; then \
       set -ex; \
-      IE7_INSTALL_FILENAME=$(basename $IE7_INSTALL_URL); \
-      curl -# -JL -o $IE7_INSTALL_FILENAME $IE7_INSTALL_URL; \
-      sha256sum $IE7_INSTALL_FILENAME | grep -q $IE7_INSTALL_SHA256; \
-      mv -v $IE7_INSTALL_FILENAME 'install/$oem$/$1/provision'; \
-    fi
-
-# install internet explorer 8
-ARG IE8_INSTALL_URL=https://download.microsoft.com/download/7/5/4/754D6601-662D-4E39-9788-6F90D8E5C097/IE8-WindowsServer2003-x64-ENU.exe
-ARG IE8_INSTALL_SHA256=bcff753e92ceabf31cfefaa6def146335c7cb27a50b95cd4f4658a0c3326f499
-RUN if [ "$IE_VERSION" = 8 ]; then \
-      set -ex; \
-      IE8_INSTALL_FILENAME=$(basename $IE8_INSTALL_URL); \
-      curl -# -JL -o $IE8_INSTALL_FILENAME $IE8_INSTALL_URL; \
-      sha256sum $IE8_INSTALL_FILENAME | grep -q $IE8_INSTALL_SHA256; \
-      mv -v $IE8_INSTALL_FILENAME 'install/$oem$/$1/provision'; \
+      IE_INSTALL_FILENAME=$(basename $IE_INSTALL_URL); \
+      curl -# -JL -o $IE_INSTALL_FILENAME $IE_INSTALL_URL; \
+      sha256sum $IE_INSTALL_FILENAME | grep -q $IE_INSTALL_SHA256; \
+      mv -v $IE_INSTALL_FILENAME 'install/$oem$/$1/provision/install'; \
     fi
 
 # install provision support files
