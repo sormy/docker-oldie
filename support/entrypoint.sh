@@ -78,7 +78,7 @@ ip address add $BRIDGE_INET dev $BRIDGE_IF
 ip tuntap add $TAP_IF mode tap user $(whoami)
 ip link set $TAP_IF up
 ip link set $TAP_IF master $BRIDGE_IF
-iptables -t nat -A POSTROUTING -s $GUEST_ADDR/32 -j MASQUERADE
+iptables -t nat -A POSTROUTING -s $GUEST_ADDR -j MASQUERADE
 
 # run dhcp/dns server to configure guest's network interface
 dnsmasq \
