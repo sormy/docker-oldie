@@ -11,24 +11,33 @@
 #    WindowsInstaller-KB893803-v2-x86.exe /passive /norestart
 # 2. reg.exe is not available in Windows 2000
 #    SOLUTION 1: Migrate to regedit.exe compatible reg file
-#    SOLUTION 2: use WSH script to edit registry
+#    SOLUTION 2: use WSH script to emulate reg.exe (reg.bat -> cscript.exe reg.js)?
 # 3. IEDriverServer 2.40 is incompatible with Windows 2000 kernel
 #    NOTE: Need to even patch exe with exeosver to run it.
 #    SOLUTION: Downgrade to lowest version that can run on Windows 2000.
+#    NOTE: IEDriverServer 2.40 starts well but doesn't work with IE 5.x
 # 4. Java 7 and Java 8 are incompatible with Windows 2000 kernel
 #    NOTE: Need to even patch exe with exeosver to run it.
 #    SOLUTION: Downgrade to Java 6.
+#    NOTE: jre-6-windows-i586.exe - OK, jre-6u45-windows-i586.exe - doesn't work
 # 5. Selenium 3 requires Java 8.
-#    SOLUTION: Downgrade to latest version that can work with Java 6 (2.40?)
+#    SOLUTION: Downgrade to latest version that can work with Java 6
+#    NOTE: selenium-server-standalone-2.40.0.jar - OK
+#    NOTE: standalone node can't listen on 0.0.0.0 so had to run both hub and node
+#    start-node.bat:
+#       java -Dwebdriver.ie.driver=./IEDriverServer ^
+#            -jar selenium-server-standalone-2.40.0.jar ^
+#            -port 5556 -role node -hub http://localhost:5555/grid/register ^
+#            -browser "browserName=internet explorer,version=5,platform=WINDOWS,maxInstances=1"
+#    start-hub.bat:
+#       java -jar selenium-server-standalone-2.40.0.jar -port 5555 -role hub
 # 6. shutdown command is not available in Windows 2000.
 #    SOLUTION: use shutdown.exe from reskit
-# 7. Need to complete internet connection setip wizard.
+# 7. Need to complete internet connection setup wizard.
 #    SOLUTION: extra registry fix?
 # 8. Enable auto login with empty password.
 #    SOLUTION: extra registry fix?
-#
-# WARNING: There is a very very very high chance that produced result won't work
-# well with Selenium Server 3 Hub.
+# 9. Need to find IE6 for Windows 2000 to install it and verify Selenium.
 #
 ################################################################################
 
