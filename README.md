@@ -311,7 +311,8 @@ https://github.com/SeleniumHQ/docker-selenium
 * Q: Why `virtio` network adapter is not used?
 * A: virtio network adapter is very fast however it is not stable, there is a
   very low chance ratio that guest will boot with network access, especially
-  on ECS.
+  on ECS. `rtl8139` 100mbit driver is available in Windows XP 32bit and
+  `e1000` 1000mbit driver is available in Windows XP 64bit.
 
 * Q: Why TCG acceleration has disabled modern multi-thread emulation?
 * A: It doesn't work stable, especially, on Windows XP 64bit causing random

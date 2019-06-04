@@ -31,6 +31,7 @@ cat Dockerfile.wxp32-ie6 \
 echo Generating Dockerfile.wxp64-ie6 ...
 
 QEMU_VGA=std
+QEMU_NET=e1000
 WIN_ISO_FILE=en_win_xp_pro_x64_with_sp2_vl_X13-41611.iso
 WIN_ISO_SHA256=ace108a116ed33ddbfd6b7e2c5f21bcef9b3ba777ca9a8052730138341a3d67d
 WIN_ARCH=AMD64
@@ -38,6 +39,7 @@ VIRTIO_ARCH=2k3/amd64
 
 cat Dockerfile.wxp32-ie6 \
   | sed -e 's!^ARG QEMU_VGA=.*$!ARG QEMU_VGA='"$QEMU_VGA"'!g' \
+        -e 's!^ARG QEMU_NET=.*$!ARG QEMU_NET='"$QEMU_NET"'!' \
         -e 's!^ARG WIN_ISO_FILE=.*$!ARG WIN_ISO_FILE='"$WIN_ISO_FILE"'!' \
         -e 's!^ARG WIN_ISO_SHA256=.*$!ARG WIN_ISO_SHA256='"$WIN_ISO_SHA256"'!' \
         -e 's!^ARG WIN_ARCH=.*$!ARG WIN_ARCH='"$WIN_ARCH"'!' \
