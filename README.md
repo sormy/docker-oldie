@@ -84,6 +84,9 @@ If you would like to use your Windows installation ISO then copy ISO to `files`
 directory and provide `WIN_ISO_FILE`, `WIN_ISO_SHA256` build arguments to
 Docker during the build.
 
+Windows XP has different versions IE7/8 installers depending on language, so
+updated `IE_INSTALL_URL` and `IE_INSTALL_SHA256` need to be also passed.
+
 You could always confirm hashes for official MSDN distributions here:
 
 * https://msdn.lol-inter.net/
