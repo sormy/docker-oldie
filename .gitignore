@@ -3,3 +3,4 @@ files/*
 build.*
 local-build.*
 NOTES.local.md
+node_modules

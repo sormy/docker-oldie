@@ -1,0 +1,8 @@
+{
+  "scripts": {
+    "test": "node test.js"
+  },
+  "dependencies": {
+    "selenium-webdriver": "^3.6.0"
+  }
+}
