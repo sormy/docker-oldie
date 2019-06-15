@@ -12,17 +12,19 @@
 # 2. reg.exe is not available in Windows 2000
 #    SOLUTION 1: Migrate to regedit.exe compatible reg file
 #    SOLUTION 2: use WSH script to emulate reg.exe (reg.bat -> cscript.exe reg.js)?
-# 3. IEDriverServer 2.40 is incompatible with Windows 2000 kernel
-#    NOTE: Need to even patch exe with exeosver to run it.
-#    SOLUTION: Downgrade to lowest version that can run on Windows 2000.
-#    NOTE: IEDriverServer 2.40 starts well but doesn't work with IE 5.x
+#    SOLUTION 3: use reg.exe from Windows XP
+# 3. IEDriverServer 2.46 is incompatible with Windows 2000 kernel
+#    NOTE: IEDriverServer is not designed to be compatible with Windows 2000.
+#    SOLUTION: https://github.com/sormy/selenium-w2k
 # 4. Java 7 and Java 8 are incompatible with Windows 2000 kernel
 #    NOTE: Need to even patch exe with exeosver to run it.
 #    SOLUTION: Downgrade to Java 6.
 #    NOTE: jre-6-windows-i586.exe - OK, jre-6u45-windows-i586.exe - doesn't work
+#    NOTE: jre-6-windows-i586.exe /s
 # 5. Selenium 3 requires Java 8.
 #    SOLUTION: Downgrade to latest version that can work with Java 6
 #    NOTE: selenium-server-standalone-2.40.0.jar - OK
+#    NOTE: https://selenium-release.storage.googleapis.com/2.40/selenium-server-standalone-2.40.0.jar
 #    NOTE: standalone node can't listen on 0.0.0.0 so had to run both hub and node
 #    start-node.bat:
 #       java -Dwebdriver.ie.driver=./IEDriverServer ^
@@ -32,13 +34,18 @@
 #    start-hub.bat:
 #       java -jar selenium-server-standalone-2.40.0.jar -port 5555 -role hub
 # 6. shutdown command is not available in Windows 2000.
-#    SOLUTION: use shutdown.exe from reskit
+#    SOLUTION 1: use shutdown.exe from windows 2000 resource kit
+#    SOLUTION 2: use shutdown.exe from windows xp
 # 7. Need to complete internet connection setup wizard.
 #    SOLUTION: extra registry fix?
 # 8. Enable auto login with empty password.
 #    SOLUTION: extra registry fix?
 # 9. Need to find IE6 for Windows 2000 to install it and verify Selenium.
-#
+#    SOLUTION: https://archive.org/details/IE6SP1
+#    NOTE: IE6SETUP.EXE /q /r:n
+# 10. Windows XP files
+#     624b256025f21ce055e9516af5b5ba9ae7b06005  reg.exe
+#     f58b19762daba35a962e69979315df6804e3fc19  shutdown.exe
 ################################################################################
 
 FROM amazonlinux
