@@ -273,7 +273,8 @@ Options:
   - VNC options:
     - `VNC_DISABLED` - Set to `0` to disable VNC (enabled by default).
   - Selenium options:
-    - `SE_HUB` - Selenium Hub public URL including port like `http://selenium-hub.domain.com:4444`.
+    - `SE_HUB` - Selenium Hub public URL including port like `http://selenium-hub.domain.com:4444`. Protocol, hostname or ip address and port
+    are mandatory. Even if http port is 80 it must be explicitly passed.
       If this value is not passed than Selenium Server will start standalone node.
     - `SE_REMOTE_HOST` - Selenium Node public URL including port like `http://selenium-node-1.domain.com:5555`.
       - This value is auto discovered if container is running on ECS.
@@ -296,40 +297,52 @@ https://github.com/SeleniumHQ/docker-selenium
 
 ## FAQ
 
-* Q: Why does this script check SHA256 for all files?
-* A: For security purposes script doesn't trust files downloaded from internet.
+### Why does this script check hash for all files?
 
-* Q: Why VGA driver is different for Windows XP 32 bit and 64 bit Windows?
-* A: Windows XP 64 bit and 32 bit have different set of integrated drivers and
-  some virtio drivers are just not available for Windows XP 64 bit.
-  - `qxl` is available only on 32 bit and is breaking VNC, not available by
-    default in Homebrew's `qemu` build so local building with this video adapter
-    won't work without rebuilding `qemu` on macOS. `qxl` is the fastest video
-    adapter.
-  - `cirrus` is available only on 32 bit (slow video adapter).
-  - `std` is available only on 64 bit (faster than `cirrus` in 10x times).
-  - `wmware` is buggy based on publicly available information, requires WMWare
-    guest additions.
+For security purposes script doesn't trust files downloaded from internet.
 
-* Q: Why `virtio` network adapter is not used?
-* A: virtio network adapter is very fast however it is not stable, there is a
-  very low chance ratio that guest will boot with network access, especially
-  on ECS. `rtl8139` 100mbit driver is available in Windows XP 32bit and
-  `e1000` 1000mbit driver is available in Windows XP 64bit.
+### Why VGA driver is different for Windows XP 32 bit and 64 bit Windows?
 
-* Q: Why TCG acceleration has disabled modern multi-thread emulation?
-* A: It doesn't work stable, especially, on Windows XP 64bit causing random
-  BSOD STOP 0x000000D1 or 0x0000001E.
+Windows XP 64 bit and 32 bit have different set of integrated drivers and
+some virtio drivers are just not available for Windows XP 64 bit.
 
-* Q: Why QEMU is compiled during build instead of installing using `yum`?
-* A: QEMU is significantly outdated in `amzn2` repo and even in `epel` repo.
-  Old versions of QEMU could hang during Windows XP 64bit installation.
+- `qxl` is available only on 32 bit and is breaking VNC, not available by
+  default in Homebrew's `qemu` build so local building with this video adapter
+  won't work without rebuilding `qemu` on macOS. `qxl` is the fastest video
+  adapter.
+- `cirrus` is available only on 32 bit (slow video adapter).
+- `std` is available only on 64 bit (faster than `cirrus` in 10x times).
+- `wmware` is buggy based on publicly available information, requires WMWare
+  guest additions.
 
-* Q: Why do you use old version of IE Driver.
-* A: This version is tested to be working well with IE 6/7/8 32bit and 64bit.
+### Why `virtio` network adapter is not used?
 
-* Q: Why is this image based on Amazon Linux?
-* A: Because it is easier to use it with AWS ECR and ECS.
+Virtio network adapter is very fast however it is not stable (at least on XP),
+there is a very low chance ratio that guest will boot with network access,
+especially on ECS. `rtl8139` 100mbit driver is available in Windows XP 32bit
+and `e1000` 1000mbit driver is available in Windows XP 64bit.
+
+### Why TCG acceleration has disabled modern multi-thread emulation?
+
+It doesn't work stable, especially, on Windows XP 64bit causing random
+BSOD STOP 0x000000D1 or 0x0000001E. On Windows XP 32bit it is more stable
+but still could cause random BSOD.
+
+### Why QEMU is compiled during build instead of installing using `yum`?
+
+QEMU is significantly outdated in `amzn2` repo and even in `epel` repo.
+Old versions of QEMU could hang during Windows XP 64bit installation.
+It is easier to maintain this image if QEMU version will be locked to
+specific version that is well-known to work without issues.
+
+### Why do you use old version of IE Driver.
+
+This version is tested to be working well with IE 6/7/8 32bit and 64bit
+and Windows XP.
+
+### Why is this image based on Amazon Linux?
+
+Because it is easier to use it with AWS ECR and ECS.
 
 ## Contribution
 

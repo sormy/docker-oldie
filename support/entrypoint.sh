@@ -4,19 +4,25 @@ set -ex
 
 # if svm (intel) or vmx (amd) is available then try to create kvm device (if not exists)
 if grep -q 'svm\|vmx' /proc/cpuinfo && [ ! -c /dev/kvm ]; then
-  mknod /dev/kvm c 10 $(grep '\<kvm\>' /proc/misc | cut -f 1 -d' ') || true
+  mknod /dev/kvm c 10 "$(grep '\<kvm\>' /proc/misc | cut -f 1 -d' ')" || true
 fi
 
-# discover SE_REMOTE_HOST if ECS container metadata is available
-if [ -z "$SE_REMOTE_HOST" ] && [ -n "$ECS_CONTAINER_METADATA_URI" ]; then
-  ECS_PORT=$(
-    curl -s "$ECS_CONTAINER_METADATA_URI" \
-      | jq ".Ports | .[] | select(.ContainerPort == $SE_PORT) | .HostPort"
+# discover SE_REMOTE_HOST if AWS is detected
+if [ -z "$SE_REMOTE_HOST" ] && [ -n "$AWS_EXECUTION_ENV" ]; then
+  # use ecs agent introspection to discover host port
+  # see: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-agent-introspection.html
+  ECS_HOST_PORT=$(
+    curl -s "http://172.17.0.1:51678/v1/tasks?dockerid=$HOSTNAME" \
+      | jq ".Containers[0].Ports[] | select(.ContainerPort == $SE_PORT) | .HostPort"
   )
-  [ -n "$ECS_PORT" ]
-  ECS_HOSTNAME=$(curl -s http://169.254.169.254/latest/meta-data/local-hostname)
-  [ -n "$ECS_HOSTNAME" ]
-  SE_REMOTE_HOST="http://$ECS_HOSTNAME:$ECS_PORT"
+  [ -n "$ECS_HOST_PORT" ]
+
+  # use ec2 instance metadata to discover local hostname
+  # see: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-metadata.html
+  ECS_LOCAL_HOSTNAME=$(curl -s http://169.254.169.254/latest/meta-data/local-hostname)
+  [ -n "$ECS_LOCAL_HOSTNAME" ]
+
+  SE_REMOTE_HOST="http://$ECS_LOCAL_HOSTNAME:$ECS_HOST_PORT"
 fi
 
 # set explicit role and port
