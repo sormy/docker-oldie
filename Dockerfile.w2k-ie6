@@ -1,51 +1,43 @@
 ################################################################################
 #
-# This image build script is incomplete, Windows 2000 won't be properly
-# provisioned after installation (no registry fixes, no restart, no java,
-# no ie driver, no selenium).
+# This image build script is incomplete:
 #
-# HERE IS THE LIST OF BLOCKERS TO MAKE IT LIVE:
+# - auto logon doesn't work (set password and reg fix?)
+# - need to complete internet connection setup wizard (reg fix?)
+# - IEDriverServer requires additional fixes to be stable
+# - (optional) get rid of Window XP reg.exe file
+# - (optional) separate windows 2000 and windows xp support files
+# - (optional) install gdiplus.dll from provided by MS installer
 #
-# 1. Windows Installer 2.0 doesn't support /passive /norestart.
-#    SOLUTION: https://download.microsoft.com/download/1/4/7/147ded26-931c-4daf-9095-ec7baf996f46/WindowsInstaller-KB893803-v2-x86.exe
-#    WindowsInstaller-KB893803-v2-x86.exe /passive /norestart
-# 2. reg.exe is not available in Windows 2000
-#    SOLUTION 1: Migrate to regedit.exe compatible reg file
-#    SOLUTION 2: use WSH script to emulate reg.exe (reg.bat -> cscript.exe reg.js)?
-#    SOLUTION 3: use reg.exe from Windows XP
-# 3. IEDriverServer 2.46 is incompatible with Windows 2000 kernel
-#    NOTE: IEDriverServer is not designed to be compatible with Windows 2000.
-#    SOLUTION: https://github.com/sormy/selenium-w2k
-# 4. Java 7 and Java 8 are incompatible with Windows 2000 kernel
-#    NOTE: Need to even patch exe with exeosver to run it.
-#    SOLUTION: Downgrade to Java 6.
-#    NOTE: jre-6-windows-i586.exe - OK, jre-6u45-windows-i586.exe - doesn't work
-#    NOTE: jre-6-windows-i586.exe /s
-# 5. Selenium 3 requires Java 8.
-#    SOLUTION: Downgrade to latest version that can work with Java 6
-#    NOTE: selenium-server-standalone-2.40.0.jar - OK
-#    NOTE: https://selenium-release.storage.googleapis.com/2.40/selenium-server-standalone-2.40.0.jar
-#    NOTE: standalone node can't listen on 0.0.0.0 so had to run both hub and node
-#    start-node.bat:
-#       java -Dwebdriver.ie.driver=./IEDriverServer ^
-#            -jar selenium-server-standalone-2.40.0.jar ^
-#            -port 5556 -role node -hub http://localhost:5555/grid/register ^
-#            -browser "browserName=internet explorer,version=5,platform=WINDOWS,maxInstances=1"
-#    start-hub.bat:
-#       java -jar selenium-server-standalone-2.40.0.jar -port 5555 -role hub
-# 6. shutdown command is not available in Windows 2000.
-#    SOLUTION 1: use shutdown.exe from windows 2000 resource kit
-#    SOLUTION 2: use shutdown.exe from windows xp
-# 7. Need to complete internet connection setup wizard.
-#    SOLUTION: extra registry fix?
-# 8. Enable auto login with empty password.
-#    SOLUTION: extra registry fix?
-# 9. Need to find IE6 for Windows 2000 to install it and verify Selenium.
-#    SOLUTION: https://archive.org/details/IE6SP1
-#    NOTE: IE6SETUP.EXE /q /r:n
-# 10. Windows XP files
-#     624b256025f21ce055e9516af5b5ba9ae7b06005  reg.exe
-#     f58b19762daba35a962e69979315df6804e3fc19  shutdown.exe
+# Prerequisites (current version):
+#
+# - gdiplus_kb975337.zip with gdiplus.dll extracted from
+#   https://download.microsoft.com/download/a/b/c/abc45517-97a0-4cee-a362-1957be2f24e1/WindowsXP-KB975337-x86-ENU.exe
+# - ie6sp1en.zip with ie6sp1en folder containing ie6setup.exe and other files
+#   downloaded from https://archive.org/download/IE6SP1/IE6%20SP1.zip
+# - IEDriverServer_Win32_2.40.0_w2k_1.0.zip - archived IEDriverServer.exe
+#   built from https://github.com/sormy/selenium-w2k using Visual Studio 2008 Pro
+# - jre-6-windows-i586.exe downloaded from Oracle website (free registration required)
+# - psshutdown.zip - archived psshutdown.exe extracted from PsTools
+#   https://download.sysinternals.com/files/PSTools.zip
+# - reg_wxp32sp3en.zip - archived reg.exe grabbed from Windows XP Pro SP3.
+# - en_win2000_pro_sp4.iso - Windows 2000 SP4 Pro English ISO.
+#
+# Workarounds:
+#
+# - reg.exe is not available on Windows 2000, copied from Windows XP.
+# - shutdown.exe is not available on Windows 2000, psshutdown.exe is used instead.
+# - IEDriverServer never worked on Windows 2000, partially fixed here:
+#   https://github.com/sormy/selenium-w2k
+# - Java 6 is the latest Java available for Windows 2000, the latest compatible
+#   Selenium Server is v2.40.0.
+#
+# Notes:
+#
+# - Windows Installer 2.0 doesn't support /passive /norestart.
+#   https://download.microsoft.com/download/1/4/7/147ded26-931c-4daf-9095-ec7baf996f46/WindowsInstaller-KB893803-v2-x86.exe
+#   WindowsInstaller-KB893803-v2-x86.exe /passive /norestart
+#
 ################################################################################
 
 FROM amazonlinux
@@ -77,7 +69,7 @@ ENV SE_OPTS=
 
 # selenium browser options
 ENV BROWSER_NAME="internet explorer"
-ENV BROWSER_VERSION=5
+ENV BROWSER_VERSION=6
 ENV BROWSER_PLATFORM=WINDOWS
 ENV BROWSER_MAX_INSTANCES=1
 
@@ -136,22 +128,6 @@ RUN set -ex; \
     7z x -o'install' install.org.iso; \
     rm install.org.iso
 
-# install virtio drivers
-ARG VIRTIO_ISO_URL=
-ARG VIRTIO_ISO_SHA256=
-ARG VIRTIO_ARCH=
-RUN if [ -n "$VIRTIO_ISO_URL" ]; then \
-      set -ex; \
-      VIRTIO_ISO_FILENAME=$(basename $VIRTIO_ISO_URL); \
-      curl -# -JL -o $VIRTIO_ISO_FILENAME $VIRTIO_ISO_URL; \
-      sha256sum $VIRTIO_ISO_FILENAME | grep -q $VIRTIO_ISO_SHA256; \
-      7z x -o'virtio' $VIRTIO_ISO_FILENAME; \
-      mkdir -p 'install/$oem$/$1/drivers'; \
-      cp -v virtio/{viostor,NetKVM}/$VIRTIO_ARCH/* 'install/$oem$/$1/drivers'; \
-      rm -rf virtio; \
-      rm -f $VIRTIO_ISO_FILENAME; \
-    fi
-
 # install winnt.sif for unattended installation
 COPY support/winnt.sif install/$WIN_ARCH/WINNT.SIF
 RUN sed -i \
@@ -165,60 +141,35 @@ RUN sed -i \
         -e "s!{refreshRate}!$REFRESH_RATE!g" \
         install/$WIN_ARCH/WINNT.SIF
 
-# install viostor for windows text mode installation
-COPY support/txtsetup.sif .
-RUN if [ "$QEMU_DISK" = "viostor" ]; then \
-      set -ex; \
-      cp -v 'install/$oem$/$1/drivers/viostor.sys' install/$WIN_ARCH; \
-      sed -i '$ d' install/$WIN_ARCH/TXTSETUP.SIF; \
-      cat txtsetup.sif >> install/$WIN_ARCH/TXTSETUP.SIF; \
-    fi; \
-    rm -f txtsetup.sif
-
 # create provision directory
-RUN mkdir -p 'install/$oem$/$1/provision/install'
+RUN mkdir -p 'install/$oem$/$1/provision'
 
-# install java msi installer
-ARG JAVA_MSI_URL=https://github.com/ojdkbuild/ojdkbuild/releases/download/1.8.0.212-1/java-1.8.0-openjdk-1.8.0.212-1.b04.ojdkbuild.windows.x86.msi
-ARG JAVA_MSI_SHA256=2e2d8a7ac215ce81c7e8cd52d0cd590afedb535018de87884fdaafa168cd292e
-RUN set -ex; \
-    JAVA_MSI_FILENAME=$(basename $JAVA_MSI_URL); \
-    curl -# -JL -o $JAVA_MSI_FILENAME $JAVA_MSI_URL; \
-    sha256sum $JAVA_MSI_FILENAME | grep -q $JAVA_MSI_SHA256; \
-    mv -v $JAVA_MSI_FILENAME 'install/$oem$/$1/provision/install'
+# install java installer
+COPY files/jre-6-windows-i586.exe 'install/$oem$/$1/provision'
 
 # install selenium server
-ARG SELENIUM_SERVER_URL=https://selenium-release.storage.googleapis.com/3.141/selenium-server-standalone-3.141.59.jar
-ARG SELENIUM_SERVER_SHA256=acf71b77d1b66b55db6fb0bed6d8bae2bbd481311bcbedfeff472c0d15e8f3cb
+ARG SELENIUM_SERVER_URL=https://selenium-release.storage.googleapis.com/2.40/selenium-server-standalone-2.40.0.jar
+ARG SELENIUM_SERVER_SHA256=ee22a1e79ce9ac49e8986c4c35ab245f5db25f591f4ec63524f0808caf11f93e
 RUN set -ex; \
     curl -# -JL -o selenium-server-standalone.jar $SELENIUM_SERVER_URL; \
     sha256sum selenium-server-standalone.jar | grep -q $SELENIUM_SERVER_SHA256; \
     mv -v selenium-server-standalone.jar 'install/$oem$/$1/provision'
 
 # install internet explorer driver for selenium server
-ARG IE_DRIVER_URL=https://selenium-release.storage.googleapis.com/2.46/IEDriverServer_Win32_2.46.0.zip
-ARG IE_DRIVER_SHA256=70d4e5887e527352aa40bf682338bccf005c1b972c58f3e2a605eea1a2bb986f
-RUN set -ex; \
-    IE_DRIVER_FILENAME=$(basename $IE_DRIVER_URL); \
-    curl -# -JL -o $IE_DRIVER_FILENAME $IE_DRIVER_URL; \
-    sha256sum $IE_DRIVER_FILENAME | grep -q $IE_DRIVER_SHA256; \
-    7z x -o'install/$oem$/$1/provision' $IE_DRIVER_FILENAME; \
-    rm -f $IE_DRIVER_FILENAME
+ADD files/gdiplus_kb975337.zip 'install/$oem$/$1/provision'
+ADD files/IEDriverServer_Win32_2.40.0_w2k_1.0.zip 'install/$oem$/$1/provision'
 
 # install internet explorer
-ARG IE_INSTALL_URL=
-ARG IE_INSTALL_SHA256=
-RUN if [ -n "$IE_INSTALL_URL" ]; then \
-      set -ex; \
-      IE_INSTALL_FILENAME=$(basename $IE_INSTALL_URL); \
-      curl -# -JL -o $IE_INSTALL_FILENAME $IE_INSTALL_URL; \
-      sha256sum $IE_INSTALL_FILENAME | grep -q $IE_INSTALL_SHA256; \
-      mv -v $IE_INSTALL_FILENAME 'install/$oem$/$1/provision/install'; \
-    fi
+# TODO: download from https://archive.org/download/IE6SP1/IE6%20SP1.zip
+ADD files/ie6sp1en.zip 'install/$oem$/$1/provision'
 
 # install provision support files
 COPY support/once.bat 'install/$oem$/$1/provision'
 COPY support/start.bat 'install/$oem$/$1/provision'
+COPY support/print-gateway-ip.js 'install/$oem$/$1/provision'
+ADD files/reg_wxp32sp3en.zip 'install/$oem$/$1/provision'
+# TODO: https://download.sysinternals.com/files/PSTools.zip
+ADD files/psshutdown.zip 'install/$oem$/$1/provision'
 
 # build windows installation iso
 RUN set -ex; \

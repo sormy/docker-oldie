@@ -165,6 +165,7 @@ RUN if [ -n "$IE_INSTALL_URL" ]; then \
 # install provision support files
 COPY support/once.bat 'install/$oem$/$1/provision'
 COPY support/start.bat 'install/$oem$/$1/provision'
+COPY support/print-gateway-ip.js 'install/$oem$/$1/provision'
 
 # build windows installation iso
 RUN set -ex; \

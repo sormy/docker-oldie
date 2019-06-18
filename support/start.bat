@@ -1,14 +1,14 @@
 @echo off
 
+cd /d c:\provision
+
 : script could be executed before network address obtained over dhcp so 10s delay is added here
 echo Waiting for connection...
 ping localhost -n 11 > nul
 
 : detect gateway ip address
-for /f "tokens=2 delims={}" %%a in ('
-  wmic /locale:ms_409 NICConfig where IPEnabled^="True" get DefaultIPGateway /value ^| findstr /r /v "^$"
-') do set "GATEWAY_ADDRESS=%%a"
-if not "%GATEWAY_ADDRESS%"=="" set GATEWAY_ADDRESS=%GATEWAY_ADDRESS:"=%
+set GATEWAY_ADDRESS=
+for /f %%i in ('cscript.exe /nologo print-gateway-ip.js') do set GATEWAY_ADDRESS=%%i
 
 : in worst case scenario we can't really do anything better than that
 if "%GATEWAY_ADDRESS%"=="" (

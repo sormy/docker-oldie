@@ -36,7 +36,8 @@ SE_OPTS="$SE_OPTS -role node -port $SE_PORT"
 if [ -n "$SE_HUB" ]; then
   SE_OPTS="$SE_OPTS -hub $SE_HUB/grid/register"
 else
-  SE_OPTS="$SE_OPTS -register false"
+  SE_OPTS="$SE_OPTS"
+  # TODO: add "-register false" for Selenium Server 3.x
 fi
 
 # set remote host if available

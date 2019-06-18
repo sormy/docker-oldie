@@ -71,19 +71,48 @@ reg add "HKLM\SYSTEM\CurrentControlSet\Control\CrashControl" /v AutoReboot /t RE
 echo Registering auto start script...
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Run" /v provision /t REG_SZ /d "c:\provision\start.bat" /f > nul
 
+: needed for windows 2000 only
+echo Enabling auto logon...
+reg add "HKLM\Software\Microsoft\Windows NT\CurrentVersion\Winlogon" /v AutoAdminLogon /t REG_DWORD /d 1 /f > nul
+
+: needed for windows 2000 only
+echo Disabling popup: Getting started with Windows 2000
+reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Tips" /v Show /t REG_DWORD /d 0 /f > nul
+
+: needed for windows 2000 only
+echo Accepting PSshutdown license agreement...
+reg add "HKCU\Software\Sysinternals\PSshutdown" /v EulaAccepted /t REG_DWORD /d 1 /f
+
 if exist install (
   for %%i in (install\*.msi install\*.exe) do (
     echo Installing %%~nxi ...
     start /wait %%i /passive /norestart
   )
-  del /f /s /q install
+  rmdir /s /q install
 )
 
-echo Initializing WMIC...
-wmic /? > nul
+: only for windows 2000
+if exist ie6sp1en\ie6setup.exe (
+  echo Installing ie6setup.exe ...
+  start /wait ie6sp1en\ie6setup.exe /q /r:n
+  rmdir /s /q ie6sp1en
+)
+
+: only for windows 2000
+if exist jre-6-windows-i586.exe (
+  echo Installing jre-6-windows-i586.exe ...
+  start /wait jre-6-windows-i586.exe /s
+  del /f /s /q jre-6-windows-i586.exe
+)
 
 echo Shutting down...
-shutdown /s /t 0
+if exist psshutdown.exe (
+  : Windows 2000 way
+  psshutdown -k -t 0
+) else (
+  : Windows XP way
+  shutdown /s /t 0
+)
 
 echo Waiting...
 pause > nul
