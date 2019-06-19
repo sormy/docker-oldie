@@ -18,7 +18,7 @@
 # - IEDriverServer_Win32_2.40.0_w2k_1.0.zip - archived IEDriverServer.exe
 #   built from https://github.com/sormy/selenium-w2k using Visual Studio 2008 Pro
 # - jre-6-windows-i586.exe downloaded from Oracle website (free registration required)
-# - psshutdown.zip - archived psshutdown.exe extracted from PsTools
+# - psshutdown_2.52.zip - archived psshutdown.exe extracted from PsTools
 #   https://download.sysinternals.com/files/PSTools.zip
 # - reg_wxp32sp3en.zip - archived reg.exe grabbed from Windows XP Pro SP3.
 # - en_win2000_pro_sp4.iso - Windows 2000 SP4 Pro English ISO.
@@ -169,7 +169,7 @@ COPY support/start.bat 'install/$oem$/$1/provision'
 COPY support/print-gateway-ip.js 'install/$oem$/$1/provision'
 ADD files/reg_wxp32sp3en.zip 'install/$oem$/$1/provision'
 # TODO: https://download.sysinternals.com/files/PSTools.zip
-ADD files/psshutdown.zip 'install/$oem$/$1/provision'
+ADD files/psshutdown_2.52.zip 'install/$oem$/$1/provision'
 
 # build windows installation iso
 RUN set -ex; \
