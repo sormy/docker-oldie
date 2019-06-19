@@ -117,10 +117,6 @@ RUN set -ex; \
 ADD files/gdiplus_kb975337.zip 'install/$oem$/$1/provision'
 ADD files/IEDriverServer_Win32_2.40.0_w2k_1.0.zip 'install/$oem$/$1/provision'
 
-# install internet explorer
-# TODO: download from https://archive.org/download/IE6SP1/IE6%20SP1.zip
-ADD files/ie6sp1en.zip 'install/$oem$/$1/provision'
-
 # install provision support files
 COPY support/once.bat 'install/$oem$/$1/provision'
 COPY support/start.bat 'install/$oem$/$1/provision'

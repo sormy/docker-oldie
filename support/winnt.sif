@@ -31,7 +31,10 @@ OemSkipWelcome=1
 [Components]
 
 [UserData]
-ProductKey={productKey}
+; for Windows XP
+ProductKey="{productKey}"
+; for Windows 2000
+ProductID="{productKey}"
 FullName="{fullName}"
 OrgName="{orgName}"
 ComputerName="{computerName}"

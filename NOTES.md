@@ -169,6 +169,58 @@ if exist blnsvr.exe (
 
 https://wiki.qemu.org/index.php/Features/GuestAgent
 
+## Windows 2000
+
+This image build script is partially complete but some things still need an action:
+
+- IEDriverServer requires additional fixes to be stable
+- (optional) get rid of Window XP reg.exe file
+- (optional) separate windows 2000 and windows xp support files
+- (optional) extract gdiplus.dll from provided by MS installer on the fly
+- (optional) extract psshutdown.exe from PSTools.zip on the fly
+- (optional) download ie6sp1en.zip on the fly
+
+What works:
+
+- Full unattended setup, no questions, auto login
+- Registry is fixed to not ask dump questions
+- Manual driver :-) is working well (over VNC)
+
+Prerequisites (current version):
+
+- ie6sp1en.zip with ie6sp1en folder containing ie6setup.exe and other files
+  downloaded from https://archive.org/download/IE6SP1/IE6%20SP1.zip
+  (Microsoft doesn't allow to download this file these days)
+- IEDriverServer_Win32_2.40.0_w2k_1.0.zip - archived IEDriverServer.exe
+  built from https://github.com/sormy/selenium-w2k using Visual Studio 2008 Pro
+  (vanilla IEDriverServer was never working on Windows 2000, so specially fixed
+  version needed to make it work)
+- gdiplus_kb975337.zip with gdiplus.dll extracted from
+  https://download.microsoft.com/download/a/b/c/abc45517-97a0-4cee-a362-1957be2f24e1/WindowsXP-KB975337-x86-ENU.exe
+  (IEDriverServer depends on it)
+- jre-6-windows-i586.exe downloaded from Oracle website (free registration required)
+  (the highest java version that is working on Windows 2000)
+- psshutdown_2.52.zip - archived psshutdown.exe extracted from PsTools
+  https://download.sysinternals.com/files/PSTools.zip
+  (shutdown.exe is not available on Windows 2000)
+- reg_wxp32sp3en.zip - archived reg.exe grabbed from Windows XP Pro SP3.
+  (reg.exe is not available on Windows 2000)
+- en_win2000_pro_sp4.iso - Windows 2000 SP4 Pro English ISO.
+
+Workarounds:
+
+- reg.exe is not available on Windows 2000, copied from Windows XP.
+- shutdown.exe is not available on Windows 2000, psshutdown.exe is used instead.
+- IEDriverServer never worked on Windows 2000, partially fixed here:
+  https://github.com/sormy/selenium-w2k
+- Java 6 is the latest Java available for Windows 2000, the latest compatible
+  Selenium Server is v2.40.0.
+
+Notes (not sure if will be needed):
+
+- Windows Installer 2.0 doesn't support /passive /norestart.
+  https://download.microsoft.com/download/1/4/7/147ded26-931c-4daf-9095-ec7baf996f46/WindowsInstaller-KB893803-v2-x86.exe
+  WindowsInstaller-KB893803-v2-x86.exe /passive /norestart
 
 ## Links
 

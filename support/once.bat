@@ -71,18 +71,6 @@ reg add "HKLM\SYSTEM\CurrentControlSet\Control\CrashControl" /v AutoReboot /t RE
 echo Registering auto start script...
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Run" /v provision /t REG_SZ /d "c:\provision\start.bat" /f > nul
 
-: needed for windows 2000 only
-echo Enabling auto logon...
-reg add "HKLM\Software\Microsoft\Windows NT\CurrentVersion\Winlogon" /v AutoAdminLogon /t REG_DWORD /d 1 /f > nul
-
-: needed for windows 2000 only
-echo Disabling popup: Getting started with Windows 2000
-reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Tips" /v Show /t REG_DWORD /d 0 /f > nul
-
-: needed for windows 2000 only
-echo Accepting PSshutdown license agreement...
-reg add "HKCU\Software\Sysinternals\PSshutdown" /v EulaAccepted /t REG_DWORD /d 1 /f
-
 if exist install (
   for %%i in (install\*.msi install\*.exe) do (
     echo Installing %%~nxi ...
@@ -103,6 +91,23 @@ if exist jre-6-windows-i586.exe (
   echo Installing jre-6-windows-i586.exe ...
   start /wait jre-6-windows-i586.exe /s
   del /f /s /q jre-6-windows-i586.exe
+)
+
+: only for Windows 2000
+if exist psshutdown.exe (
+  echo Disabling popup: Getting started with Windows 2000
+  reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Tips" /v Show /t REG_DWORD /d 0 /f > nul
+
+  echo Accepting PSshutdown license agreement...
+  reg add "HKCU\Software\Sysinternals\PSshutdown" /v EulaAccepted /t REG_DWORD /d 1 /f > nul
+
+  echo Disabling internet connection wizard...
+  reg add "HKCU\Software\Microsoft\Internet Connection Wizard" /v Completed /t REG_DWORD /d 1 /f > nul
+
+  echo Enabling auto logon...
+  net user Administrator secret
+  reg add "HKLM\Software\Microsoft\Windows NT\CurrentVersion\Winlogon" /v AutoAdminLogon /t REG_SZ /d 1 /f > nul
+  reg add "HKLM\Software\Microsoft\Windows NT\CurrentVersion\Winlogon" /v DefaultPassword /t REG_SZ /d secret /f > nul
 )
 
 echo Shutting down...
