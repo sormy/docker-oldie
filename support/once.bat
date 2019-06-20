@@ -95,6 +95,9 @@ if exist jre-6-windows-i586.exe (
   echo Installing jre-6-windows-i586.exe ...
   start /wait jre-6-windows-i586.exe /s
   del /f /s /q jre-6-windows-i586.exe
+
+  echo Disabling Java update notification...
+  reg delete "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" /v SunJavaUpdateSched /f > nul
 )
 
 : only for Windows 2000
