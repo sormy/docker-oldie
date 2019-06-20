@@ -46,6 +46,10 @@ reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Internet Settings\Zones\
 echo Disabling IE popup: Do you want to turn AutoComplete on?
 reg add "HKCU\Software\Microsoft\Internet Explorer\IntelliForms" /v AskUser /t REG_DWORD /d 0 /f > nul
 
+echo Disable IE popup: Problems with this Web page might prevent it from being displayed properly
+reg add "HKCU\Software\Microsoft\Internet Explorer\Main" /v "Error Dlg Details Pane Open" /t REG_SZ /d "no" /f > nul
+reg add "HKCU\Software\Microsoft\Internet Explorer\Main" /v "Error Dlg Displayed On Every Error" /t REG_SZ /d "no" /f > nul
+
 echo Enabling IE TLS 1.0...
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Internet Settings" /v SecureProtocols /t REG_DWORD /d 170 /f > nul
 
