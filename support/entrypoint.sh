@@ -7,13 +7,17 @@ if grep -q 'svm\|vmx' /proc/cpuinfo && [ ! -c /dev/kvm ]; then
   mknod /dev/kvm c 10 "$(grep '\<kvm\>' /proc/misc | cut -f 1 -d' ')" || true
 fi
 
+# TODO: doesn't work on awsvpc networking
 # discover SE_REMOTE_HOST if AWS is detected
 if [ -z "$SE_REMOTE_HOST" ] && [ -n "$AWS_EXECUTION_ENV" ]; then
+  # delay host port detection to make sure that host port assignment is completed
+  sleep 2s
+
   # use ecs agent introspection to discover host port
   # see: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-agent-introspection.html
   ECS_HOST_PORT=$(
     curl -s "http://172.17.0.1:51678/v1/tasks?dockerid=$HOSTNAME" \
-      | jq ".Containers[0].Ports[] | select(.ContainerPort == $SE_PORT) | .HostPort"
+      | jq ".Containers[0].Ports[] | select(.ContainerPort == $SE_PORT) | .HostPort // empty"
   )
   [ -n "$ECS_HOST_PORT" ]
 
@@ -41,7 +45,7 @@ if [ -n "$SE_REMOTE_HOST" ]; then
 fi
 
 # build browser capabilities config
-SE_BROWSER="browserName=$BROWSER_NAME,version=$BROWSER_VERSION,platform=$BROWSER_PLATFORM,maxInstances=$BROWSER_MAX_INSTANCES"
+SE_BROWSER="browserName=$BROWSER_NAME,version=$BROWSER_VERSION,platformName=$BROWSER_PLATFORM,maxInstances=$BROWSER_MAX_INSTANCES"
 
 # create directory that will be shared with guest
 mkdir -p /opt/qemu/shared
