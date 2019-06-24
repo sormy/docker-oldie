@@ -164,11 +164,40 @@ docker build \
 Build files have a lot of build arguments but almost all of them have reasonable
 defaults that are not recommended to change unless you know what you are doing.
 
+While VNC is not available during build there is stil an option to take a
+screenshot from container that is running QEMU:
+
+```sh
+# (host) identify container ID
+docker ps
+
+# (host) open shell connection to container
+docker exec -it {ContainerID} bash
+
+# (container) install Net::VNC perl application all all dependencies
+yum install -y perl-devel
+cpan install YAML
+cpan install Module::Build
+yum install -y imlib2 imlib2-devel
+cpan install Image::Imlib2
+cpan install Net::VNC
+
+# (container) take a screenshot (using default options)
+vnccapture
+
+# (host) copy produced screenshot from container to host
+docker cp {ContainerID}:/opt/qemu/snapshot0001.png .
+
+# (host) open image using image viewer
+open snapshot0001.png
+```
+
 ### Local + Docker
 
-The build process is much faster if kvm acceleration is available and easier to
-debug if system image build is performed on the host and then system image is
-passed to Docker build context to finalize the image.
+The build process is much faster if KVM acceleration is available and easier to
+debug if VNC is available (see Windows installation progress). Below are
+instructions how to build system QEMU image on the host then pass it to Docker
+build context to finalize Docker image.
 
 The process should take around 45-60 mins.
 
