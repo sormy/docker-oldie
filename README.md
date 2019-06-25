@@ -176,6 +176,7 @@ docker exec -it {ContainerID} bash
 
 # (container) install Net::VNC perl application all all dependencies
 yum install -y perl-devel
+yum install -y cpan
 cpan install YAML
 cpan install Module::Build
 yum install -y imlib2 imlib2-devel
