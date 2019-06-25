@@ -114,16 +114,16 @@ RUN set -ex; \
     mv -v selenium-server-standalone.jar 'install/$oem$/$1/provision'
 
 # install internet explorer driver for selenium server
-ADD files/gdiplus_kb975337.zip 'install/$oem$/$1/provision'
-ADD files/IEDriverServer_Win32_2.40.0_w2k_1.0.zip 'install/$oem$/$1/provision'
+ADD files/gdiplus_kb975337.tar.gz 'install/$oem$/$1/provision'
+ADD files/IEDriverServer_Win32_2.40.0_w2k_1.0.tar.gz 'install/$oem$/$1/provision'
 
 # install provision support files
 COPY support/once.bat 'install/$oem$/$1/provision'
 COPY support/start.bat 'install/$oem$/$1/provision'
 COPY support/print-gateway-ip.js 'install/$oem$/$1/provision'
-ADD files/reg_wxp32sp3en.zip 'install/$oem$/$1/provision'
+ADD files/reg_wxp32sp3en.tar.gz 'install/$oem$/$1/provision'
 # TODO: https://download.sysinternals.com/files/PSTools.zip
-ADD files/psshutdown_2.52.zip 'install/$oem$/$1/provision'
+ADD files/psshutdown_2.52.tar.gz 'install/$oem$/$1/provision'
 
 # build windows installation iso
 RUN set -ex; \

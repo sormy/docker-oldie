@@ -188,24 +188,27 @@ What works:
 
 Prerequisites (current version):
 
-- ie6sp1en.zip with ie6sp1en folder containing ie6setup.exe and other files
+- ie6sp1en.tar.gz with ie6sp1en folder containing ie6setup.exe and other files
   downloaded from https://archive.org/download/IE6SP1/IE6%20SP1.zip
   (Microsoft doesn't allow to download this file these days)
-- IEDriverServer_Win32_2.40.0_w2k_1.0.zip - archived IEDriverServer.exe
+- IEDriverServer_Win32_2.40.0_w2k_1.0.tar.gz - archived IEDriverServer.exe
   built from https://github.com/sormy/selenium-w2k using Visual Studio 2008 Pro
   (vanilla IEDriverServer was never working on Windows 2000, so specially fixed
   version needed to make it work)
-- gdiplus_kb975337.zip with gdiplus.dll extracted from
+- gdiplus_kb975337.tar.gz with gdiplus.dll extracted from
   https://download.microsoft.com/download/a/b/c/abc45517-97a0-4cee-a362-1957be2f24e1/WindowsXP-KB975337-x86-ENU.exe
   (IEDriverServer depends on it)
 - jre-6-windows-i586.exe downloaded from Oracle website (free registration required)
   (the highest java version that is working on Windows 2000)
-- psshutdown_2.52.zip - archived psshutdown.exe extracted from PsTools
+- psshutdown_2.52.tar.gz - archived psshutdown.exe extracted from PsTools
   https://download.sysinternals.com/files/PSTools.zip
   (shutdown.exe is not available on Windows 2000)
-- reg_wxp32sp3en.zip - archived reg.exe grabbed from Windows XP Pro SP3.
+- reg_wxp32sp3en.tar.gz - archived reg.exe grabbed from Windows XP Pro SP3.
   (reg.exe is not available on Windows 2000)
 - en_win2000_pro_sp4.iso - Windows 2000 SP4 Pro English ISO.
+
+These files are available for download here:
+https://www.artembutusov.com/public/docker-oldie/{filename}
 
 Workarounds:
 

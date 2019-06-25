@@ -64,7 +64,7 @@ cat Dockerfile.$PROFILE \
         -e 's!^ENTRYPOINT !# \0!g' \
         -e 's!^EXPOSE !# \0!g' \
         -e 's!^COPY !cp -f ./!g' \
-        -e 's!^ADD \(.*\.zip\) \(.*\)$!7z x -o\2 \1!g' \
+        -e 's!^ADD \(.*\.tar\.gz\) \(.*\)$!7z x -o\2 \1!g' \
         -e 's!^WORKDIR \(.*\)$!mkdir -p "'$WORKDIR'" \&\& cd "'$WORKDIR'"!g' \
         -e 's!yum !true \0!g' \
         -e 's!set !true \0!g' \
