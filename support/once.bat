@@ -33,7 +33,10 @@ reg add "HKCU\Software\Microsoft\CTF\LangBar" /v ShowStatus /t REG_DWORD /d 3 /f
 echo Disabling windows xp tour prompt...
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Applets\Tour" /v RunCount /t REG_DWORD /d 0 /f > nul
 
-echo Disabling IE popup: You are about to view pages over a secure connection
+echo Disabling IE popup: You are about to view pages over a secure connection (IE6)
+reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Internet Settings" /v WarnOnZoneCrossing /t REG_DWORD /d 0 /f > nul
+
+echo Disabling IE popup: You are about to view pages over a secure connection (IE8)
 reg add "HKLM\Software\Microsoft\Internet Explorer\Security" /v DisableSecuritySettingCheck /t REG_DWORD /d 1 /f > nul
 
 echo Disabling IE popup: When you send information to the internet it might be possible for others to see that information?
