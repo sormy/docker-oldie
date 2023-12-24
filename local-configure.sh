@@ -97,7 +97,7 @@ EOF
 cat Dockerfile.$PROFILE \
   | sed -e '/^ARG WIN_ISO_FILE=/,/RUN rm -f install\.iso/d' \
         -e '/^COPY support\/start-node/a COPY system.qcow2 .' \
-        -e 's/^FROM .*$/FROM amazonlinux/g' \
+        -e 's/^FROM .*$/FROM amazonlinux:2/g' \
         -e '/RUN \[ -n "\$PRODUCT_KEY" \]/d' \
   >> local-build.$PROFILE.docker
 
